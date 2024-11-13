@@ -1,2 +1,7 @@
 .idea
 .gitignore
+.env.dev
+.env.prod
+.env
+.venv
+venv
