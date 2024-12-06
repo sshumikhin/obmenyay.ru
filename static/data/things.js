@@ -1,6 +1,4 @@
-// Модель данных по вещям в рекомендациях.
-
-export const things = [
+export const personal_things = [
     {
         id: 1,
         name:'Набор простых карандашей',

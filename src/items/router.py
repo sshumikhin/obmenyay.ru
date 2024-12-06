@@ -132,7 +132,6 @@ async def update_item_endpoint():
     pass
 
 
-
 @router.post(path="/skip")
 async def skip_item_endpoint():
     pass

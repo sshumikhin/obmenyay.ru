@@ -35,7 +35,7 @@ import { things } from 'https://obmenyay-ru.ru/static/data/things.js';
 const cardContainer = document.getElementById('card_container');
 let currentIndex = 0;
 
-import { personal_things as originalPersonalThings } from 'https://obmenyay-ru.ru/static/data/personal_things.js';
+import { personal_things as originalPersonalThings } from 'https://obmenyay-ru.ru/static/data/things.js';
 
 let personal_things = JSON.parse(localStorage.getItem('personal_things')) || [...originalPersonalThings];
 
@@ -161,12 +161,12 @@ document.querySelector('.success_btn').addEventListener('click', () => {
 
 renderThings();
 
-// Call renderThings on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const footer = document.getElementById('footer');
     if (footer) {
         footer.classList.add('active');
     }
+    renderThings();
 });
 </script>
 
