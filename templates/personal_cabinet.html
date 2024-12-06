@@ -106,7 +106,7 @@ const addNewThing = async () => {
         formData.append('description', thing_description);
         formData.append('file', jpgBlob, `${thing_name}.jpg`);
 
-        const response = await fetch('http://localhost:7777/items', {
+        const response = await fetch('https://obmenyay-ru.ru/items', {
             method: 'POST',
             body: formData
         });
