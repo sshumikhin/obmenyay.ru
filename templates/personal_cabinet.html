@@ -47,56 +47,38 @@ const initializeEventListeners = () => {
             addNewThing();
         });
     }
-};
 
-const displayImage = (inputElement) => {
-    const file = inputElement.files[0];
-    if (file) {
-        const imageURL = URL.createObjectURL(file);
-        const preview = document.getElementById('preview');
-        preview.src = imageURL;
-        preview.style.display = 'block';
-        preview.onload = () => URL.revokeObjectURL(imageURL);
+
+    const fileInput = document.getElementById('file_input');
+    if (fileInput) {
+        fileInput.addEventListener('change', previewImage);
     }
 };
 
-const convertToJpg = async (file) => {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
+const previewImage = (event) => {
+    const file = event.target.files[0];
+    const imagePreview = document.getElementById('image_preview');
+    const errorMessage = document.getElementById('error_message');
 
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
+    errorMessage.textContent = '';
 
-            // Конвертация в JPEG
-            canvas.toBlob((blob) => {
-                resolve(blob);
-            }, 'image/jpeg', 1); // 1 - качество от 0 до 1
+    if (file) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
         };
 
-        img.onerror = reject;
-    });
+        reader.onerror = () => {
+            errorMessage.textContent = 'Ошибка загрузки изображения.';
+        };
+
+        reader.readAsDataURL(file);
+    } else {
+        imagePreview.style.display = 'none';
+    }
 };
-
-const addNewThing = async () => {
-    const thing_name = document.getElementById('thing_name').value.trim();
-    const thing_description = document.getElementById('thing_description').value.trim();
-    const imageFile = document.getElementById('imageInput').files[0]; // Получаем файл изображения
-    const form = document.getElementById('add_thing_form');
-
-    if (!thing_name || !thing_description || !imageFile) {
-        alert('Пожалуйста, заполните все поля.');
-        return;
-    }
-
-    if (!imageFile.type.startsWith('image/')) {
-        alert('Пожалуйста, выберите файл изображения.');
-        return;
-    }
 
     try {
         const jpgBlob = await convertToJpg(imageFile);
@@ -115,7 +97,7 @@ const addNewThing = async () => {
 
         const addedThing = await response.json();
 
-        personal_things.push(addedThing); // Предполагается, что сервер возвращает добавленный объект с id
+        personal_things.push(addedThing);
 
         renderThings();
         window.myDialog.close();
@@ -126,49 +108,48 @@ const addNewThing = async () => {
     }
 };
 
-const deleteThing = async (id) => {
-    try {
-        // Выполнение запроса на удаление
-        const response = await fetch(`https://your-api-url.com/things/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+document.querySelector('.close_modal').addEventListener('click', () => {
+    const form = document.getElementById('add_thing_form');
+    renderThings();
+    window.myDialog.close();
+    form.reset();
+    document.getElementById('image_preview').style.display = 'none';
+});
 
-        // Проверка успешности запроса
-        if (!response.ok) {
-            throw new Error('Ошибка при удалении вещи');
-        }
-
-        // Удаление вещи из локального состояния
-        personal_things = personal_things.filter(thing => thing.id !== id);
-        console.log(personal_things);
-        renderThings();
-    } catch (error) {
-        console.error('Произошла ошибка:', error);
-    }
+const deleteThing = (id) => {
+    personal_things = personal_things.filter(thing => thing.id !== id);
+    localStorage.setItem('personal_things', JSON.stringify(personal_things));
+    console.log(personal_things);
+    renderThings();
 };
-
+const highlightSelectedThings = () => {
+    const selectedThings = JSON.parse(localStorage.getItem('selectedThings')) || [];
+    const buttons = document.querySelectorAll('.button_trash');
+    buttons.forEach(button => {
+        const id = parseInt(button.dataset.id);
+        console.log(button);
+        if (selectedThings.includes(`${id}`)) {
+            button.parentElement.classList.add('selected');
+        }
+    });
+};
 const renderThings = () => {
     const thingList = document.getElementById('thing_list');
     thingList.innerHTML = '';
 
     personal_things.forEach(thing => {
-        const thingElement = document.createElement('div');
+        const thingElement = document.createElement('button');
         thingElement.classList.add('button_container');
         thingElement.innerHTML = `
-            <button type="button">
-                ${thing.name}
+                            ${thing.name}
                 <button class="button_trash" data-id="${thing.id}">
-                    <img src="https://obmenyay-ru.ru/static/icon/persobnalCabinet/trash.svg" alt="крестик">
+                    <img src="../../../static/icon/persobnalCabinet/trash.svg" alt="крестик">
                 </button>
-            </button>
         `;
         thingList.appendChild(thingElement);
     });
 
-    // Add event listeners for delete buttons
+
     const trashButtons = document.querySelectorAll('.button_trash');
     trashButtons.forEach(button => {
         button.addEventListener('click', (event) => {
@@ -176,7 +157,25 @@ const renderThings = () => {
             deleteThing(id);
         });
     });
+
+    const button_container = document.querySelectorAll('.button_container');
+    button_container.forEach(button => {
+        button.addEventListener('click', (event) => {
+            console.log(button);
+            const id = parseInt(button.querySelector('.button_trash').dataset.id);
+            let selectedThings = JSON.parse(localStorage.getItem('selectedThings')) || [];
+
+            if (selectedThings.includes(`${id}`)) {
+                selectedThings = selectedThings.filter(item => item !== `${id}`);
+                button.classList.remove('selected');
+            }
+            localStorage.setItem('selectedThings', JSON.stringify(selectedThings));
+        });
+    });
+
+    highlightSelectedThings();
 };
+
 
 // Call renderThings on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
