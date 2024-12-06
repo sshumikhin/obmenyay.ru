@@ -66,4 +66,3 @@ async def delete_entity(
         session: AsyncSession,
         entity: Any) -> Any:
     await session.delete(entity)
-    await session.commit()

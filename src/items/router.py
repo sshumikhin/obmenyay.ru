@@ -6,7 +6,7 @@ from vk_id import User as VKUser
 from src.items.constants import ItemStatusesEnum
 from src.items.models import ItemStatus, Item
 from src.items.service import create_item
-from src.postgres.api import get_entity_by_params
+from src.postgres.api import get_entity_by_params, delete_entity
 from src.vk.dependencies import get_current_user
 from src.jinja import templates
 from src.postgres.session import async_session
@@ -91,14 +91,46 @@ async def append_item_endpoint(
             "description": item.description}
 
 
+@router.delete(path="/{item_id}")
+async def delete_item_endpoint(
+        item_id: int,
+        current_user: VKUser = Depends(get_current_user),
+        session: AsyncSession = Depends(async_session),
+        s3_client: S3Client = Depends(selectel),
+):
+
+    active_item_status = await get_entity_by_params(
+        session=session,
+        model=ItemStatus,
+        conditions=[ItemStatus.name == str(ItemStatusesEnum.ACTIVE.value)]
+    )
+
+    item = await get_entity_by_params(
+        session=session,
+        model=Item,
+        conditions=[Item.id == item_id, Item.owner_id == int(current_user.user_id)],
+    )
+
+    if item is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"message": "Item was not found"}
+        )
+    try:
+        await s3_client.delete_file(object_name=item.s3_url_path)
+        await delete_entity(
+            session=session,
+            entity=item
+        )
+        await session.commit()
+    except Exception as e:
+        await session.rollback()
+
+
 @router.patch(path="/")
 async def update_item_endpoint():
     pass
 
-
-@router.delete(path="/")
-async def delete_item_endpoint():
-    pass
 
 
 @router.post(path="/skip")
