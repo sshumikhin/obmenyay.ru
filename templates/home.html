@@ -17,7 +17,7 @@
     <dialog id="exchange_modal">
         <h2>Выберите вещь для обмена</h2>
           <button class="close_modal" type="button">
-              <img src="../static/icon/persobnalCabinet/close.svg" alt="close_form">
+              <img src="https://obmenyay-ru.ru/static/icon/persobnalCabinet/close.svg" alt="close_form">
           </button>
         <div class="modal_box">
           <div id="exchange_thing_list" class="thing_list">
@@ -35,7 +35,7 @@ import { things } from 'https://obmenyay-ru.ru/static/data/things.js';
 const cardContainer = document.getElementById('card_container');
 let currentIndex = 0;
 
-import { personal_things as originalPersonalThings } from '../../../static/data/personal_things.js';
+import { personal_things as originalPersonalThings } from 'https://obmenyay-ru.ru/static/data/personal_things.js';
 
 let personal_things = JSON.parse(localStorage.getItem('personal_things')) || [...originalPersonalThings];
 
@@ -167,8 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (footer) {
         footer.classList.add('active');
     }
-    initializeEventListeners(); // Ensure this is called after the function is defined
-    renderThings();
 });
 </script>
 
