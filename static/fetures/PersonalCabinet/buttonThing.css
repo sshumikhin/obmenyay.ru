@@ -1,0 +1,19 @@
+.button_container{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border: 3px solid rgb(79, 79, 79);
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.button_container button {
+    background: none;
+
+}
+
+.button_trash img{
+    width: 32px;
+    height: 32px;
+}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+                <section class="section_login">
+                    <h1 class="title">
+                        <img src="https://obmenyay-ru.ru/static/icon/logo/logo.svg" alt="Логотип обменяй.ру" class="logo">
+                        обменяй.ру
+                    </h1>
+                    <div id="VkIdSdkOneTap"></div>
+                <div>
+                  <script>
+                    import('https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js').then(() => {
+                        function openVKWidget(config) {
+                            if ('VKIDSDK' in window) {
+                                const VKID = window.VKIDSDK;
+
+                            VKID.Config.init({
+                                app: config.app,
+                                redirectUrl: config.redirectUrl,
+                                state: config.state,
+                                codeChallenge: config.codeChallenge,
+                                scope: config.scope,
+                            });
+
+                                const oneTap = new VKID.OneTap();
+
+                                const container = document.getElementById('VkIdSdkOneTap');
+                                if (container) {
+                                    oneTap.render({
+                                        container: container,
+                                        scheme: VKID.Scheme.LIGHT,
+                                        lang: VKID.Languages.RUS,
+                                                styles: {
+                                                borderRadius: 30
+                                        }})
+                                        .on(VKID.WidgetEvents.ERROR, handleError);
+                                }
+                            }
+                        }
+
+                        function vkidOnSuccess(data) {
+                            console.log(data);
+                            localStorage.setItem('api', JSON.stringify(data));
+                            floatingOneTap.close();
+                        }
+
+                        function vkidOnError(error) {
+                            console.error(error);
+                            localStorage.setItem('error', JSON.stringify(error));
+                        }
+                  openVKWidget({
+                    app: {{ vk_app_id }},
+                    redirectUrl: '{{ redirect_url }}',
+                    state: '{{ state }}',
+                    codeChallenge: '{{ code_challenge }}',
+                    scope: '{{ scope }}',
+                    appName: '{{ app_name }}'
+                });;
+                    });</script>
+                </div>
+                </section>
+{% endblock %}

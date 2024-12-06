@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="rating" content="general">
+    <meta name="author" content="ФИО" />
+    <meta name="keywords" content="обмен, вещи, взамен, обменяй" />
+    <meta name="description" content="Обменяй.ру - сервис по обмену вещами" />
+    <link rel="icon" type="image/svg+xml" href="https://obmenyay-ru.ru//static/public/favicon.svg" />
+    <link rel="stylesheet" href="https://obmenyay-ru.ru/static/index.css">
+    <link rel="stylesheet" href="https://obmenyay-ru.ru/static/fetures/PersonalCabinet/index.css">
+    <link rel="stylesheet" href="https://obmenyay-ru.ru/static/fetures/Home/home.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css"/>
+    <title>Обменяй.ру</title>
+    <script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="content_box">
+            <header class="content_box_title_icon" aria-label="Иконка верхней части телефона"></header>
+            <main class="content" id="content">
+                {% block content %}
+                {% endblock %}
+            </main>
+            <footer class="footer" id="footer">
+                <button  class="footer_button" id="message" onclick="window.location='https://obmenyay-ru.ru/chats'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/message.svg" alt=""></button>
+                <button class="footer_button" id="home" onclick="window.location='https://obmenyay-ru.ru/items/for-trade'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/home.svg" alt=""></button>
+                <button class="footer_button" id="personal_cabinet" onclick="window.location='https://obmenyay-ru.ru/items/my'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/user.svg" alt=""></button>
+            </footer>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+</body>
+</html>

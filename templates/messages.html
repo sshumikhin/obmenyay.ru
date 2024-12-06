@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Meesages</h1>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const footer = document.getElementById('footer');
+    if (footer) {
+        footer.classList.add('active');
+    }
+    initializeEventListeners(); // Ensure this is called after the function is defined
+    renderThings();
+});
+</script>
+
+{% endblock %}

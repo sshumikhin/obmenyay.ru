@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="https://obmenyay-ru.ru/static/fetures/PersonalCabinet/buttonThing.css">
+
+<section class="personal_cabinet">
+    <header class="section_header">
+        <button class="button_arrow" onclick="loadPersonalCabinet()">
+            <img src="https://obmenyay-ru.ru/static/icon/Chevron.svg" alt="крестик">
+        </button>
+        <span>Личный кабинет</span>
+    </header>
+    <div class="personal_cabinet_main">
+        <div class="user_box">
+            <span id="user_name">{{ username }}</span>
+            <div id="thing_list" class="thing_list"></div>
+        </div>
+        <button type="button" onclick="window.myDialog.showModal()" class="add_button">Добавить новую вещь</button>
+                        <dialog id="myDialog">
+                            <h2>Добавить вещь</h2>
+                            <button class="close_modal" type="button">
+                                <img src="../static/icon/persobnalCabinet/close.svg" alt="close_form">
+                            </button>
+                            <form class="form" id="add_thing_form">
+                                <input id="thing_name" class="form_thing_input" type="text" placeholder="имя вещи" required>
+                                <div id="error_message" style="color: red; font-size: 12px;"></div>
+                                <input id="thing_desription" class="form_thing_input" type="text" placeholder="описание" required>
+                                <div id="error_message" style="color: red; font-size: 12px;"></div>
+                                <input id="file_input" class="form_thing_input" type="file" accept="image/*"
+                                    onchange="previewImage(event)">
+                                <img id="image_preview" src="#" alt="Image Preview"
+                                    style="display: none; max-width: 200px; margin-top: 10px;">
+                                <button type="button" class="add_thing_button">Добавить вещь</button>
+                            </form>
+                        </dialog>
+        <button class="personal_cabinet_button" onclick="window.location='https://obmenyay-ru.ru/items/for-trade'">перейти к объявлениям</button>
+    </div>
+</section>
+
+<script type="module">
+let personal_things = {{ personal_things | tojson | safe }};
+
+const initializeEventListeners = () => {
+    const button = document.querySelector('.add_thing_button');
+    if (button) {
+        button.addEventListener('click', () => {
+            addNewThing();
+        });
+    }
+};
+
+const displayImage = (inputElement) => {
+    const file = inputElement.files[0];
+    if (file) {
+        const imageURL = URL.createObjectURL(file);
+        const preview = document.getElementById('preview');
+        preview.src = imageURL;
+        preview.style.display = 'block';
+        preview.onload = () => URL.revokeObjectURL(imageURL);
+    }
+};
+
+const convertToJpg = async (file) => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            // Конвертация в JPEG
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/jpeg', 1); // 1 - качество от 0 до 1
+        };
+
+        img.onerror = reject;
+    });
+};
+
+const addNewThing = async () => {
+    const thing_name = document.getElementById('thing_name').value.trim();
+    const thing_description = document.getElementById('thing_description').value.trim();
+    const imageFile = document.getElementById('imageInput').files[0]; // Получаем файл изображения
+    const form = document.getElementById('add_thing_form');
+
+    if (!thing_name || !thing_description || !imageFile) {
+        alert('Пожалуйста, заполните все поля.');
+        return;
+    }
+
+    if (!imageFile.type.startsWith('image/')) {
+        alert('Пожалуйста, выберите файл изображения.');
+        return;
+    }
+
+    try {
+        const jpgBlob = await convertToJpg(imageFile);
+
+        const formData = new FormData();
+        formData.append('name', thing_name);
+        formData.append('description', thing_description);
+        formData.append('file', jpgBlob, `${thing_name}.jpg`);
+
+        const response = await fetch('http://localhost:7777/items', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('Ошибка при добавлении товара');
+
+        const addedThing = await response.json();
+
+        personal_things.push(addedThing); // Предполагается, что сервер возвращает добавленный объект с id
+
+        renderThings();
+        window.myDialog.close();
+        form.reset();
+
+    } catch (error) {
+        console.error('Произошла ошибка:', error);
+    }
+};
+
+const deleteThing = async (id) => {
+    try {
+        // Выполнение запроса на удаление
+        const response = await fetch(`https://your-api-url.com/things/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Проверка успешности запроса
+        if (!response.ok) {
+            throw new Error('Ошибка при удалении вещи');
+        }
+
+        // Удаление вещи из локального состояния
+        personal_things = personal_things.filter(thing => thing.id !== id);
+        console.log(personal_things);
+        renderThings();
+    } catch (error) {
+        console.error('Произошла ошибка:', error);
+    }
+};
+
+const renderThings = () => {
+    const thingList = document.getElementById('thing_list');
+    thingList.innerHTML = '';
+
+    personal_things.forEach(thing => {
+        const thingElement = document.createElement('div');
+        thingElement.classList.add('button_container');
+        thingElement.innerHTML = `
+            <button type="button">
+                ${thing.name}
+                <button class="button_trash" data-id="${thing.id}">
+                    <img src="https://obmenyay-ru.ru/static/icon/persobnalCabinet/trash.svg" alt="крестик">
+                </button>
+            </button>
+        `;
+        thingList.appendChild(thingElement);
+    });
+
+    // Add event listeners for delete buttons
+    const trashButtons = document.querySelectorAll('.button_trash');
+    trashButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const id = parseInt(event.target.closest('.button_trash').dataset.id);
+            deleteThing(id);
+        });
+    });
+};
+
+// Call renderThings on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    const footer = document.getElementById('footer');
+    if (footer) {
+        footer.classList.add('active');
+    }
+    initializeEventListeners(); // Ensure this is called after the function is defined
+    renderThings();
+});
+</script>
+
+{% endblock %}

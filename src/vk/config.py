@@ -1,0 +1,8 @@
+from src.utils import getenv
+
+
+APP_NAME = getenv("VK_OUATH_APP_NAME")
+CLIENT_ID = getenv("VK_OUATH_CLIENT_ID")
+CLIENT_SECRET = getenv("VK_PROTECTED_APPLICATION_KEY")
+CLIENT_ACCESS_KEY = getenv("VK_SERVICE_ACCESS_KEY")
+REDIRECT_URI = getenv("REDIRECT_URI")

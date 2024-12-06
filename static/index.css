@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
+
+@import url('./animations.css');
+
+
+/* Сброс стилей */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100vh;
+    font-family: Comfortaa, sans-serif;
+    background-image: url('../static/backgrounds/mainBackground.jpg');
+    background-size: cover; /* Изображение будет масштабироваться, чтобы покрыть весь контейнер */
+    background-position: center; /* Центрируем изображение */
+    background-repeat: no-repeat; /* Изображение не будет повторяться */
+    overflow: hidden; /* Скрыть лишний скроллинг */
+
+}
+
+/* Удаляем стандартные стили для списков */
+ul, ol {
+    list-style: none;
+}
+
+/* Удаляем стандартные стили для ссылок */
+a {
+    text-decoration: none;
+    color: inherit; /* Сохраняем цвет текста */
+}
+
+/* Удаляем стандартные стили для таблиц */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* Устанавливаем стандартные стили для изображений */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Устанавливаем стандартные стили для форм */
+input, button, textarea, select {
+    font-family: inherit; /* Унаследуем шрифт */
+    font-size: inherit; /* Унаследуем размер шрифта */
+    border: none;
+    outline: none;
+}
+
+/* Добавляем базовые стили для кнопок */
+button {
+    cursor: pointer;
+}
+h1{
+    font-size: 32px;
+}
+/* Cтили для основного контейнера */
+.wrapper{
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content_box {
+    min-width: 390px;
+    max-width: 390px;
+    height: 795px;
+    background-image: url('../static/mockup/iPhone16Plus.png');
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat; 
+
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10px 12px 9px 12px;
+    position: relative;
+
+    opacity: 1; 
+}
+
+.content_box_title_icon{
+    min-width: 280px;
+    max-width: 280px;
+    height: 30px;
+    background-image: url('../static/mockup/iPhoneTopIcon.png');
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+
+    position: absolute;
+    top: 25px;
+    right: 48px;
+
+    opacity: 1; 
+}
+
+.content{
+    width: 100%;
+    height: 100%;
+    background-image: url('../static/backgrounds/backgroundApp.jpg');
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50px;
+}
+
+.title{
+    user-select: none;
+    display: flex; 
+    align-items: center;
+    gap: 10px;
+}
+
+.section_login{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    height: 100%;
+}
+
+#VkIdSdkOneTap{
+    width: 300px;
+    position: absolute;
+    bottom: 40px;
+}
+
+.button{
+    font-size: 16px;
+    padding: 10px 50px;
+    border-radius: 30px;
+    background-color: #0077FF;
+    animation: logoFadeIn 1s forwards;
+    color: white;
+    transition: all .25s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+
+}
+.button img{
+    width: 32px;
+    height: 32px;
+}
+.button:hover{
+    background-color: #006eeb;
+    transition: all .25s ease;
+}
+
+.footer{
+    background-color: white;
+    width: 100%;
+    height: 80px;
+    border-radius: 0px 0px 50px 50px;
+
+    border-top: 1px solid rgba(128, 128, 128, 0.302);
+
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+
+    padding: 20px 20px;
+  display: none;
+}
+.footer.active{
+    display: flex;
+}
+.footer_button{
+    padding: 10px;
+    width: 100%;
+    border-radius: 50px;
+    background: none;
+}
+.footer_button img {
+    width: 32px;
+    height: 32px;
+}
+.footer_button.active{
+    background: rgb(255, 172, 186);
+}
+
+@media (max-width: 425.99px) {
+    html, body {
+        background-image: url('../static/backgrounds/backgroundApp.jpg');
+    }
+    .content_box{
+        background-image: none;
+
+        height: 100vh;
+        width: 100%;
+
+        padding: 0;
+    }
+    .content_box_title_icon{
+        background-image: none;
+    }
+    .content{
+        border-radius: 0px;
+        background-image: none;
+    }
+    .content_box{
+        width: 100%;
+        max-width: 425.99px;
+    }
+    .footer{
+        border-radius: 0px;
+    }
+}

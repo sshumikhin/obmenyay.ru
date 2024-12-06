@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: postgresql-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./psql-initial:/docker-entrypoint-initdb.d
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5433:5432"
+    restart: always
+
+
+  redis:
+    container_name: redis-db
+    image: redis:latest
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "6379:6379"
+    restart: always
+
+
+volumes:
+  postgres_data:
