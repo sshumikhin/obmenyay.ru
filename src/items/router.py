@@ -9,7 +9,7 @@ from src.postgres.api import get_entity_by_params, delete_entity
 from src.vk.dependencies import get_current_user
 from src.jinja import templates
 from src.postgres.session import async_session
-from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_MB
+from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_MB, PUBLIC_URL as S3_PUBLIC_URL
 from .dependencies import validate_name, validate_description, validate_file
 from .schemas import Delete_item
 
@@ -100,7 +100,7 @@ async def append_item_endpoint(
         s3_path="",
     )
 
-    item.s3_url_path = f"users/{current_user.user_id}/items/{item.id}"
+    item.s3_url_path = f"{S3_PUBLIC_URL}/users/{current_user.user_id}/items/{item.id}"
 
     try:
         await s3_client.upload_file(
@@ -274,7 +274,6 @@ async def get_items_endpoint(
         )
 
     return content
-
 
 
 @router.get(

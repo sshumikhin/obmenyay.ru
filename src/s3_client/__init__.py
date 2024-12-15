@@ -8,7 +8,9 @@ __all__ = [
     "S3Client",
     "MAX_FILE_SIZE_BYTES",
     "MAX_FILE_SIZE_MB",
-    "AllowedImageFormats"]
+    "AllowedImageFormats",
+    "PUBLIC_URL"
+]
 
 
 selectel = S3Client(
