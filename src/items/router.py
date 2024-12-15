@@ -120,14 +120,12 @@ async def append_item_endpoint(
         right = width
         bottom = top + new_height
     else:
-        new_width = int(height * target_ratio)
-        left = (width - new_width) // 2
+        left = 0
         top = 0
-        right = left + new_width
+        right = width
         bottom = height
 
     cropped_img = img.crop((left, top, right, bottom))
-
     output = io.BytesIO()
 
     cropped_img.save(
