@@ -103,13 +103,29 @@ async def append_item_endpoint(
     )
 
     contents = await file.read()
-    image = Image.open(io.BytesIO(contents))
-    format = image.format
-    image = image.resize((360, 640))
+    img = Image.open(io.BytesIO(contents))
+    format = img.format
+    width, height = img.size
+    target_ratio = 9 / 16
+
+    if width / height > target_ratio:
+        new_height = int(width / target_ratio)
+        left = 0
+        top = (height - new_height) // 2
+        right = width
+        bottom = top + new_height
+    else:
+        new_width = int(height * target_ratio)
+        left = (width - new_width) // 2
+        top = 0
+        right = left + new_width
+        bottom = height
+
+    cropped_img = img.crop((left, top, right, bottom))
 
     output = io.BytesIO()
 
-    image.save(
+    cropped_img.save(
         output,
         format=format,
         quality=100
