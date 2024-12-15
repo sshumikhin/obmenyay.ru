@@ -107,6 +107,8 @@ async def append_item_endpoint(
     contents = await file.read()
     img = Image.open(io.BytesIO(contents))
 
+    format = img.format
+
     width, height = img.size
 
     max_size = 500
@@ -123,12 +125,11 @@ async def append_item_endpoint(
     offset_x = (new_width - img.width) // 2
     offset_y = (new_height - img.height) // 2
 
-    new_img.paste(img, (offset_x, offset_y))
-
+    new_img.paste(img, box =(offset_x, offset_y))
 
     output = io.BytesIO()
 
-    img.save(
+    new_img.save(
         output,
         format=format,
         quality=100
