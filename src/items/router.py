@@ -105,7 +105,7 @@ async def append_item_endpoint(
     contents = await file.read()
     image = Image.open(io.BytesIO(contents))
     format = image.format
-    image = image.resize((350, 450))
+    image = image.resize((360, 640))
 
     output = io.BytesIO()
 
