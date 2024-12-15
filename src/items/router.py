@@ -12,10 +12,8 @@ from src.postgres.session import async_session
 from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_MB, PUBLIC_URL as S3_PUBLIC_URL
 from .dependencies import validate_name, validate_description, validate_file
 from .schemas import Delete_item
-from PIL import Image, ImageFilter
+from PIL import Image
 import io
-
-
 
 router = APIRouter(
     prefix="/items"
@@ -105,31 +103,13 @@ async def append_item_endpoint(
     )
 
     contents = await file.read()
-    img = Image.open(io.BytesIO(contents))
-
-    format = img.format
-
-    width, height = img.size
-
-    max_size = 500
-    ratio = min(max_size / width, max_size / height)
-    new_width = int(width * ratio)
-    new_height = int(height * ratio)
-
-    img = img.resize((new_width, new_height))
-
-    new_width, new_height = 500, 300
-    background_color = (255, 255, 255)
-    new_img = Image.new('RGB', (new_width, new_height), background_color)
-
-    offset_x = (new_width - img.width) // 2
-    offset_y = (new_height - img.height) // 2
-
-    new_img.paste(img, box =(offset_x, offset_y))
+    image = Image.open(io.BytesIO(contents))
+    format = image.format
+    image = image.resize((350, 450))
 
     output = io.BytesIO()
 
-    new_img.save(
+    image.save(
         output,
         format=format,
         quality=100
