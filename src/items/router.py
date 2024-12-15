@@ -12,6 +12,10 @@ from src.postgres.session import async_session
 from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_MB, PUBLIC_URL as S3_PUBLIC_URL
 from .dependencies import validate_name, validate_description, validate_file
 from .schemas import Delete_item
+from PIL import Image, ImageFilter
+import io
+
+
 
 router = APIRouter(
     prefix="/items"
@@ -100,11 +104,27 @@ async def append_item_endpoint(
         s3_path="",
     )
 
+    contents = await file.read()
+    image = Image.open(io.BytesIO(contents))
+    format = image.format
+    image = image.resize(size =(350, 450),  resample= Image.BICUBIC)
+    image = image.filter(ImageFilter.SHARPEN)
+
+    output = io.BytesIO()
+
+    image.save(
+        output,
+        format=format,
+        quality=100
+    )
+
+    output.seek(0)
+
     item.s3_url_path = f"/users/{current_user.user_id}/items/{item.id}"
 
     try:
         await s3_client.upload_file(
-            file_stream=file.file,
+            file_stream=output.getvalue(),
             file_name=item.s3_url_path)
 
         await session.commit()
@@ -298,7 +318,19 @@ async def like_item_endpoint(
         vk_user: VKUser = Depends(get_current_user),
         session: AsyncSession = Depends(async_session)
 ):
-    pass
+    user_items = await get_entity_by_params(
+        session = session,
+        model= Item.id,
+        conditions=[Item.owner_id == int(vk_user.user_id)],
+    )
+
+    if user_items is None:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "У вас нет товаров, чтобы начать обмен"}
+        )
+
+
 
 
 @router.get(
@@ -306,7 +338,7 @@ async def like_item_endpoint(
 )
 async def get_items_for_trade_endpoint(
         request: Request,
-        # vk_user: VKUser = Depends(get_current_user),
+        vk_user: VKUser = Depends(get_current_user),
         session: AsyncSession = Depends(async_session),
 ):
 

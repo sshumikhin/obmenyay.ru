@@ -37,8 +37,4 @@ async def validate_file(file: UploadFile = File(...)):
             content={"message": f"Размер картинки товара должен быть не более {MAX_FILE_SIZE_MB} мб"}
         )
 
-    if file.content_type != str(AllowedImageFormats.JPEG.value):
-        return JSONResponse(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                            content={"message": "Неподдержимваемый формат файла. Попробуйте отправить другой файл"})
-
     return file
