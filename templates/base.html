@@ -26,15 +26,9 @@
                 {% endblock %}
             </main>
             <footer class="footer" id="footer">
-                <button class="footer_button" id="message" onclick="window.location='{{ url_for('get_my_active_chats_endpoint') }}'" type="button">
-                    <img src="/static/icon/fotter/message.svg" alt="">
-                </button>
-                <button class="footer_button" id="home" onclick="window.location='{{ url_for('get_items_for_trade_endpoint') }}'" type="button">
-                    <img src="/static/icon/fotter/home.svg" alt="">
-                </button>
-                <button class="footer_button" id="personal_cabinet" onclick="window.location='{{ url_for('get_my_items_endpoint') }}'" type="button">
-                    <img src="/static/icon/fotter/user.svg" alt="">
-                </button>
+                <button  class="footer_button" id="message" onclick="window.location='https://obmenyay-ru.ru/chats'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/message.svg" alt=""></button>
+                <button class="footer_button" id="home" onclick="window.location='https://obmenyay-ru.ru/items/for-trade'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/home.svg" alt=""></button>
+                <button class="footer_button" id="personal_cabinet" onclick="window.location='https://obmenyay-ru.ru/items/my'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/user.svg" alt=""></button>
             </footer>
         </div>
     </div>
