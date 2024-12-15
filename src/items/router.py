@@ -100,7 +100,7 @@ async def append_item_endpoint(
         s3_path="",
     )
 
-    item.s3_url_path = f"{S3_PUBLIC_URL}/users/{current_user.user_id}/items/{item.id}"
+    item.s3_url_path = f"/users/{current_user.user_id}/items/{item.id}"
 
     try:
         await s3_client.upload_file(
@@ -269,7 +269,7 @@ async def get_items_endpoint(
                 "id": item.id,
                 "name": item.name,
                 "description": item.description,
-                "s3_url_path": item.s3_url_path
+                "s3_url_path": f"{S3_PUBLIC_URL}/{item.s3_url_path}"
             }
         )
 
