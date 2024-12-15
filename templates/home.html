@@ -35,7 +35,7 @@ let currentItems = [];
 const cardContainer = document.getElementById('card_container');
 
 async function fetchItems() {
-    const response = await fetch('/items/');
+    const response = await fetch('https://obmenyay-ru.ru/items/');
     if (!response.ok) {
         const message = await response.text();
         cardContainer.textContent = message;
@@ -66,7 +66,7 @@ async function skipItem(itemId) {
     currentItems.splice(index, 1);
 
     try {
-      const response = await fetch(`/items/${numericItemId}/skip`);
+      const response = await fetch(`https://obmenyay-ru.ru/items/${numericItemId}/skip`);
       if (!response.ok) {
         console.error('Ошибка при отправке запроса на сервер:', response.statusText);
       } else {

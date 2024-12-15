@@ -33,7 +33,7 @@
                 <button type="button" class="add_thing_button">Добавить вещь</button>
             </form>
         </dialog>
-        <button class="personal_cabinet_button" onclick="window.location='{{ url_for('get_items_for_trade_endpoint') }}'">перейти к объявлениям</button>
+        <button class="personal_cabinet_button" onclick="https://obmenyay-ru.ru/items/for-trade">перейти к объявлениям</button>
     </div>
 </section>
 
@@ -117,7 +117,7 @@ const addNewThing = async () => {
         formData.append('description', thing_description);
         formData.append('file', jpgBlob, `${thing_name}.jpg`);
 
-        const response = await fetch("{{ url_for('append_item_endpoint') }}", {
+        const response = await fetch("https://obmenyay-ru.ru/items", {
             method: 'POST',
             body: formData
         });
@@ -150,7 +150,7 @@ document.querySelector('.close_modal').addEventListener('click', () => {
 
 const deleteItem = async (id) => {
     try {
-        const response = await fetch("{{ url_for('delete_item_endpoint') }}", {
+        const response = await fetch("https://obmenyay-ru.ru/items", {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
