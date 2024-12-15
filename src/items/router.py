@@ -105,14 +105,30 @@ async def append_item_endpoint(
     )
 
     contents = await file.read()
-    image = Image.open(io.BytesIO(contents))
-    format = image.format
-    image = image.resize(size =(350, 450),  resample= Image.BICUBIC)
-    image = image.filter(ImageFilter.SHARPEN)
+    img = Image.open(io.BytesIO(contents))
+
+    width, height = img.size
+
+    max_size = 500
+    ratio = min(max_size / width, max_size / height)
+    new_width = int(width * ratio)
+    new_height = int(height * ratio)
+
+    img = img.resize((new_width, new_height))
+
+    new_width, new_height = 500, 300
+    background_color = (255, 255, 255)
+    new_img = Image.new('RGB', (new_width, new_height), background_color)
+
+    offset_x = (new_width - img.width) // 2
+    offset_y = (new_height - img.height) // 2
+
+    new_img.paste(img, (offset_x, offset_y))
+
 
     output = io.BytesIO()
 
-    image.save(
+    img.save(
         output,
         format=format,
         quality=100
