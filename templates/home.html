@@ -30,143 +30,101 @@
 </section>
 
 <script type="module">
-import { things } from 'https://obmenyay-ru.ru/static/data/things.js';
 
+let currentItems = [];
 const cardContainer = document.getElementById('card_container');
-let currentIndex = 0;
 
-import { personal_things as originalPersonalThings } from 'https://obmenyay-ru.ru/static/data/things.js';
+async function fetchItems() {
+    const response = await fetch('/items/');
+    if (!response.ok) {
+        const message = await response.text();
+        cardContainer.textContent = message;
+        return;
+    }
+    const data = await response.json();
+    currentItems = data;
+    return data;
+}
 
-let personal_things = JSON.parse(localStorage.getItem('personal_things')) || [...originalPersonalThings];
-
-function renderThings() {
-    if (currentIndex < things.length) {
-        const thing = things[currentIndex];
-        const card = document.createElement('div');
-        card.setAttribute('name', 'thing_card_name');
-        card.setAttribute('id', `card_${thing.id}`);
-        card.classList.add('card');
-        card.innerHTML = `
-      <img src="${thing.img}" alt="thing_photo">
-      <span>${thing.name}</span>
-      <p>${thing.description}</p>
+async function renderItem(item) {
+    const card = document.createElement('div');
+    card.setAttribute('name', 'thing_card_name');
+    card.setAttribute('id', `card_${item.id}`);
+    card.classList.add('card');
+    card.innerHTML = `
+        <img src="${item.s3_url_path}" alt="Картинка товара">
+        <span>${item.name}</span>
+        <p>${item.description}</p>
     `;
-        cardContainer.appendChild(card);
-    }
+    cardContainer.appendChild(card);
 }
 
-function removeCard() {
-    const card = document.querySelector('.card');
-    if (!card) return;
+async function skipItem(itemId) {
+  const numericItemId = parseInt(itemId);
+  const index = currentItems.findIndex(item => item.id === numericItemId);
+  if (index !== -1) {
+    currentItems.splice(index, 1);
 
-    card.classList.add('fade-out');
+    try {
+      const response = await fetch(`/items/${numericItemId}/skip`);
+      if (!response.ok) {
+        console.error('Ошибка при отправке запроса на сервер:', response.statusText);
+      } else {
+        console.log('Запрос на пропуск элемента отправлен успешно');
+      }
+    } catch (error) {
+      console.error('Ошибка при отправке запроса:', error);
+    }
 
-    card.addEventListener('transitionend', () => {
-        cardContainer.removeChild(card);
-        currentIndex++;
-        if (currentIndex < things.length) {
-            renderThings();
-        } else {
-            const message = document.createElement('div');
-            message.textContent = 'Нет больше предметов для отображения.';
-            cardContainer.appendChild(message);
-        }
-    });
+    const currentCard = document.querySelector('.card');
+    if (currentCard) {
+      currentCard.remove();
+    }
+
+    if (currentItems.length > 0) {
+      const newCard = currentItems[0];
+      renderItem(newCard);
+    } else {
+      await loadNewItems();
+    }
+  } else {
+    console.error('Элемент с ID', itemId, 'не найден');
+  }
 }
 
-
-const renderPersonalThings = () => {
-    const thingList = document.getElementById('exchange_thing_list');
-    thingList.innerHTML = '';
-
-    if (personal_things.length === 0) {
-        alert('Нет вещей для обмена.');
-        return;
-    }
-
-    personal_things.forEach(thing => {
-        const thingElement = document.createElement('div');
-        thingElement.classList.add('button_container');
-        thingElement.innerHTML = `
-            <button type="button" data-id="${thing.id}" class="exchange_btn">
-                ${thing.name}
-            </button>
-        `;
-        thingList.appendChild(thingElement);
-    });
-
-
-    highlightSelectedThings();
-};
-
-
-const highlightSelectedThings = () => {
-    const selectedThings = JSON.parse(localStorage.getItem('selectedThings')) || [];
-    const buttons = document.querySelectorAll('#exchange_thing_list button');
-
-    buttons.forEach(button => {
-        const id = button.getAttribute('data-id');
-        if (selectedThings.includes(id)) {
-            button.classList.add('selected');
-        }
-    });
-};
-
-document.getElementById('exchange_thing_list').addEventListener('click', (event) => {
-    if (event.target.tagName === 'BUTTON') {
-        const button = event.target;
-        const id = button.getAttribute('data-id');
-        let selectedThings = JSON.parse(localStorage.getItem('selectedThings')) || [];
-
-        if (selectedThings.includes(id)) {
-
-            selectedThings = selectedThings.filter(item => item !== id);
-            button.classList.remove('selected');
-        } else {
-
-            selectedThings.push(id);
-            button.classList.add('selected');
-        }
-
-        localStorage.setItem('selectedThings', JSON.stringify(selectedThings));
+document.querySelector('.button_skip').addEventListener('click', async () => {
+    const currentCard = document.querySelector('.card');
+    if (currentCard) {
+        const itemId = currentCard.id.slice(5);
+        await skipItem(itemId);
     }
 });
 
-document.querySelector('.button_skip').addEventListener('click', () => {
-    alert('Вы отменили предмет');
-    removeCard('left');
-});
 
-document.querySelector('.button_trade').addEventListener('click', () => {
-    const selectedThings = JSON.parse(localStorage.getItem('selectedThings')) || [];
-
-
-    if (selectedThings.length === personal_things.length) {
-        alert('Все вещи уже выбраны для обмена.');
-        return;
+document.querySelector('.button_trade').addEventListener('click', async () => {
+    const currentCard = document.querySelector('.card');
+    if (currentCard) {
+        const itemId = currentCard.id.slice(5);
+        await tradeItem(itemId);
     }
-
-    renderPersonalThings();
-    window.exchange_modal.showModal();
 });
 
-document.querySelector('.close_modal').addEventListener('click', () => {
-    window.exchange_modal.close();
-});
+async function loadNewItems() {
+  const items = await fetchItems();
 
-document.querySelector('.success_btn').addEventListener('click', () => {
-    window.exchange_modal.close();
-    removeCard('right');
-});
+  if (items.length > 0) {
+    renderItem(items[0]);
+  } else {
+    cardContainer.textContent = 'Закончились товары';
+    const buttons = document.querySelectorAll('.button_skip, .button_trade');
+    buttons.forEach(button => button.style.display = 'none');
+  }
+}
 
-renderThings();
-
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const footer = document.getElementById('footer');
-    if (footer) {
-        footer.classList.add('active');
-    }
-    renderThings();
+    footer.classList.add('active');
+    await loadNewItems();
 });
 </script>
 

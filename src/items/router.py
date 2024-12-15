@@ -1,17 +1,17 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Request, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, Request, UploadFile, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from vk_id import User as VKUser
-from src.items.constants import ItemStatusesEnum
-from src.items.models import ItemStatus, Item
-from src.items.service import create_item
+from src.items.models import Item, UserSeenItem
+from src.items.service import create_item, skip_item
 from src.postgres.api import get_entity_by_params, delete_entity
 from src.vk.dependencies import get_current_user
 from src.jinja import templates
 from src.postgres.session import async_session
-from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, AllowedImageFormats
-from ssl import SSLError
+from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_MB
+from .dependencies import validate_name, validate_description, validate_file
+from .schemas import Delete_item
 
 router = APIRouter(
     prefix="/items"
@@ -19,51 +19,85 @@ router = APIRouter(
 
 
 @router.post(
+    summary="Добавить новый предмет",
     path="/",
-    status_code=status.HTTP_200_OK)
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {
+            "description": "Предмет был успешно добавлен",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "item_successfully_created": {
+                            "summary": "Предмет был успешно добавлен",
+                            "value": {"id": 1234,
+                                      "name": "Карандаш",
+                                      "description": "Простой"
+                                      }
+                        }
+                    }
+                }
+            },
+        400: {
+            "description": "Поле name не прошло валидацию",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "empty_field": {
+                            "summary": "Поле является пустым",
+                            "value": {"message": "Введите наименование товара"}
+                        },
+                        "inccorrect_length_of_value": {
+                            "summary": "Неккоретная длина наименования товара",
+                            "value": {"message": "Длина наименования должна быть от 1 до 50 символов"}
+                        }
+                    }
+                }
+            }
+        },
+        413: {
+            "description": "Большой вес картинки",
+                "content": {
+                    "application/json": {
+                        "examples": {
+                            "item_picture_too_big": {
+                                "summary": "Большой вес картинки",
+                                "value": {"message": f"Размер картинки товара должен быть не более {MAX_FILE_SIZE_MB} мб"}
+                            }
+                        }
+                    }
+                }
+            },
+        415: {
+            "description": "Неподдерживаемый формат картинки",
+                "content": {
+                    "application/json": {
+                        "examples": {
+                            "unsupported_image_format": {
+                                "summary": "Неподдерживаемый формат картинки",
+                                "value": {"message": "Неподдержимваемый формат файла. Попробуйте отправить другой файл"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+)
 async def append_item_endpoint(
-        file: UploadFile = File(...),
+        name: str = Depends(validate_name),
+        description: Optional[str] = Depends(validate_description),
+        file: UploadFile = Depends(validate_file),
         current_user: VKUser = Depends(get_current_user),
         session: AsyncSession = Depends(async_session),
         s3_client: S3Client = Depends(selectel),
-        name: str = Form(None),
-        description: Optional[str] = Form(None)
 ):
-
-    if name is None:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"message": "Name is required"}
-        )
-
-    if file.size > MAX_FILE_SIZE_BYTES:
-        return JSONResponse(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            content={"message": f"The file size must not exceed {MAX_FILE_SIZE_MB} MB."}
-        )
-
-    if file.content_type != str(AllowedImageFormats.JPEG.value):
-        return JSONResponse(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                            content={"message": "Unsupported file format"})
-
-    active_item_status = await get_entity_by_params(
-        session=session,
-        model=ItemStatus,
-        conditions=[ItemStatus.name == str(ItemStatusesEnum.ACTIVE.value)]
-    )
-
-    if active_item_status is None:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"message": "Internal server error"})
-
     item = await create_item(
         session=session,
         name=name,
         description=description,
         vk_user_id=int(current_user.user_id),
         s3_path="",
-        status=active_item_status
     )
 
     item.s3_url_path = f"users/{current_user.user_id}/items/{item.id}"
@@ -80,10 +114,9 @@ async def append_item_endpoint(
         # TODO: отправлять в логи
         await session.rollback()
 
-
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"message": "Internal server error"}
+            content={"message": "Внутренняя ошибка сервера"}
         )
 
     return {"id": item.id,
@@ -91,58 +124,187 @@ async def append_item_endpoint(
             "description": item.description}
 
 
-@router.delete(path="/{item_id}")
+@router.delete(
+    summary="Удалить товар",
+    path="/",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        200: {
+            "description": "Предмет был удалён",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "item_successfully_deleted": {
+                            "summary": "Предмет был удалён",
+                            "value": {"message": "ОК"}
+                        }
+                    }
+                }
+            },
+        400: {
+            "description": "Поле name не прошло валидацию",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "empty_field": {
+                            "summary": "Поле является пустым",
+                            "value": {"message": "Введите наименование товара"}
+                        },
+                        "inccorrect_length_of_value": {
+                            "summary": "Неккоретная длина наименования товара",
+                            "value": {"message": "Длина наименования должна быть от 1 до 50 символов"}
+                        }
+                    }
+                }
+            }
+        },
+        413: {
+            "description": "Большой вес картинки",
+                "content": {
+                    "application/json": {
+                        "examples": {
+                            "item_picture_too_big": {
+                                "summary": "Большой вес картинки",
+                                "value": {"message": f"Размер картинки товара должен быть не более {MAX_FILE_SIZE_MB} мб"}
+                            }
+                        }
+                    }
+                }
+            },
+        404: {
+            "description": "Предмет не был найден",
+                "content": {
+                    "application/json": {
+                        "examples": {
+                            "item_was_not_found": {
+                                "summary": "Предмет не был найден",
+                                "value": {"message": "Предмет не был найден"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+)
 async def delete_item_endpoint(
-        item_id: int,
+        item: Delete_item,
         current_user: VKUser = Depends(get_current_user),
         session: AsyncSession = Depends(async_session),
         s3_client: S3Client = Depends(selectel),
 ):
 
-    active_item_status = await get_entity_by_params(
-        session=session,
-        model=ItemStatus,
-        conditions=[ItemStatus.name == str(ItemStatusesEnum.ACTIVE.value)]
-    )
+    item_id = item.item_id
 
     item = await get_entity_by_params(
         session=session,
         model=Item,
-        conditions=[Item.id == item_id, Item.owner_id == int(current_user.user_id)],
+        conditions=
+        [
+            Item.id == item_id,
+            Item.owner_id == int(current_user.user_id)
+        ],
     )
 
     if item is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            content={"message": "Item was not found"}
+            content={"message": "Предмет не был найден"}
         )
     try:
         await s3_client.delete_file(object_name=item.s3_url_path)
+
         await delete_entity(
             session=session,
             entity=item
         )
         await session.commit()
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"message": "ОК"}
+        )
     except Exception as e:
         await session.rollback()
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"message": "Внутренняя ошибка сервера"}
+        )
 
 
-@router.patch(path="/")
-async def update_item_endpoint():
+@router.get(
+    summary="Получить новую партию товаров для обмена",
+    path="/"
+)
+async def get_items_endpoint(
+        vk_user: VKUser = Depends(get_current_user),
+        session: AsyncSession = Depends(async_session)
+):
+    watched_items_ids = await get_entity_by_params(
+        session=session,
+        model=UserSeenItem.item_id,
+        conditions=
+        [
+            UserSeenItem.user_id == int(vk_user.user_id)
+        ],
+        many=True
+    )
+
+    unwatched_items = await get_entity_by_params(
+        session=session,
+        model=Item,
+        conditions=[
+            Item.owner_id != int(vk_user.user_id),
+            Item.id.not_in(watched_items_ids),
+            Item.is_available
+        ],
+        limit=30,
+        many=True
+    )
+
+    content = []
+    for item in unwatched_items:
+        content.append(
+            {
+                "id": item.id,
+                "name": item.name,
+                "description": item.description,
+                "s3_url_path": item.s3_url_path
+            }
+        )
+
+    return content
+
+
+
+@router.get(
+    path="/{item_id}/skip",
+    status_code=status.HTTP_204_NO_CONTENT
+)
+async def skip_item_endpoint(
+        item_id: int,
+        vk_user: VKUser = Depends(get_current_user),
+        session: AsyncSession = Depends(async_session)
+):
+    await skip_item(
+        session=session,
+        item_id=item_id,
+        vk_user_id=int(vk_user.user_id)
+    )
+
+
+@router.get(path="/{item_id}/like")
+async def like_item_endpoint(
+        item_id: int,
+        vk_user: VKUser = Depends(get_current_user),
+        session: AsyncSession = Depends(async_session)
+):
     pass
 
 
-@router.post(path="/skip")
-async def skip_item_endpoint():
-    pass
-
-
-@router.post(path="/like")
-async def like_item_endpoint():
-    pass
-
-
-@router.get(path="/for-trade")
+@router.get(
+    path="/for-trade"
+)
 async def get_items_for_trade_endpoint(
         request: Request,
         # vk_user: VKUser = Depends(get_current_user),
@@ -160,28 +322,16 @@ async def get_items_for_trade_endpoint(
     path="/my",
     include_in_schema=False
 )
-async def get_my_profile(
+async def get_my_items_endpoint(
         request: Request,
         vk_user: VKUser = Depends(get_current_user),
         session: AsyncSession = Depends(async_session),
 ):
 
-    active_item_status = await get_entity_by_params(
-        session=session,
-        model=ItemStatus,
-        conditions=[ItemStatus.name == str(ItemStatusesEnum.ACTIVE.value)]
-    )
-
-    if active_item_status is None:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"message": "Internal server error"})
-
     items = await get_entity_by_params(
         session=session,
         model=Item,
-        conditions=[Item.owner_id == int(vk_user.user_id),
-                    Item.status_id == active_item_status.id],
+        conditions=[Item.owner_id == int(vk_user.user_id)],
         many=True
     )
 
@@ -189,6 +339,7 @@ async def get_my_profile(
         "personal_cabinet.html",
         {
             "request": request,
+            "username": f"{vk_user.first_name} {vk_user.last_name}",
             "personal_things": [{
                 "id": item.id,
                 "name": item.name,

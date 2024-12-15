@@ -7,7 +7,7 @@ router = APIRouter(
 
 
 @router.get("/")
-async def get_my_active_chats(request: Request):
+async def get_my_active_chats_endpoint(request: Request):
     return templates.TemplateResponse(
         "messages.html",
         {"request": request}

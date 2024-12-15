@@ -1,7 +1,6 @@
 from fastapi import (
     APIRouter,
     status,
-    Response,
     Request, Depends
 )
 
@@ -74,7 +73,7 @@ async def get_login_page(
 @router.get(
     path="/oauth2/token",
     status_code=status.HTTP_200_OK,
-    response_class=RedirectResponse
+    response_class=RedirectResponse,
 )
 async def get_code_state_device_id(
         request: Request,
@@ -149,7 +148,7 @@ async def get_code_state_device_id(
 
     return success_response
 
-#
+
 # @router.post(path="/oauth2/token/logout")
 # async def logout_token_endpoint():
 #     """

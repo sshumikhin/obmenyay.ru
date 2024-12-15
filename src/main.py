@@ -17,13 +17,13 @@ from src.vk.exceptions import UserIsNotAuthenticated
 
 app = FastAPI(
     title="Обменяй.ру",
-    docs_url=None,
+    docs_url="/docs",
     redoc_url=None
 )
 
 app.mount(
     path="/static",
-    app=StaticFiles(directory="static"),
+    app=StaticFiles(directory="static", html=True),
     name="static"
 )
 

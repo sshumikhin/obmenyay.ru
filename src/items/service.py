@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.items.models import Item, ItemStatus
+from src.items.models import Item, UserSeenItem
 
 
 async def create_item(
@@ -9,7 +9,7 @@ async def create_item(
     name: str,
     description: Optional[str],
     s3_path: str,
-    status: ItemStatus
+    is_available: bool = True,
 ) -> Item:
 
     new_item = Item(
@@ -17,8 +17,22 @@ async def create_item(
         description=description,
         owner_id=vk_user_id,
         s3_url_path=s3_path,
-        status_id = status.id
+        is_available=is_available
     )
     session.add(new_item)
     await session.flush()
     return new_item
+
+
+async def skip_item(
+    session: AsyncSession,
+    item_id: int,
+    vk_user_id: int
+):
+
+    session.add(
+        UserSeenItem(
+            user_id = vk_user_id,
+            item_id = item_id
+    ))
+    await session.commit()

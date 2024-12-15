@@ -1,4 +1,23 @@
-import { things } from '../../data/things.js';
+const things = [
+    {
+        id: 1,
+        name:'Набор простых карандашей',
+        description:'Хорошо подойдут для художки',
+        img: '/static/img/pencils.png',
+    },
+    {
+        id: 2,
+        name:'Набор простых карандашей',
+        description:'Хорошо подойдут для художки',
+        img: '/static/img/book.png',
+    },
+    {
+        id: 3,
+        name:'Набор простых карандашей',
+        description:'Хорошо подойдут для художки',
+        img: '/static/img/fork.png',
+    },
+];
 
 const cardContainer = document.getElementById('card_container');
 let currentIndex = 0;
