@@ -12,7 +12,7 @@ from src.postgres.session import async_session
 from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_MB, PUBLIC_URL as S3_PUBLIC_URL
 from .dependencies import validate_name, validate_description, validate_file
 from .schemas import Delete_item
-from PIL import Image
+from PIL import Image, ImageOps
 import io
 
 router = APIRouter(
@@ -105,8 +105,13 @@ async def append_item_endpoint(
     contents = await file.read()
     img = Image.open(io.BytesIO(contents))
     format = img.format
-    width, height = img.size
     target_ratio = 9 / 16
+    try:
+        img = ImageOps.exif_transpose(img)
+    except AttributeError:
+        pass
+
+    width, height = img.size
 
     if width / height > target_ratio:
         new_height = int(width / target_ratio)
