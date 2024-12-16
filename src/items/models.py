@@ -3,11 +3,13 @@ from sqlalchemy import (
     String,
     BigInteger,
     ForeignKey,
-    Boolean
+    Boolean,
+    DateTime, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
 
 from src.postgres.models import Base
+from src.postgres.utils import utcnow_without_tzinfo
 
 
 class Item(Base):
@@ -20,7 +22,7 @@ class Item(Base):
     is_available = Column(Boolean, default=True)
 
     seens = relationship(argument="UserSeenItem", back_populates="item", cascade="all, delete")
-    # trades = relationship(argument="ItemTrade", back_populates="item_offered", cascade="all, delete")
+    trades = relationship(argument="ItemTrade", back_populates="item_offered", cascade="all, delete")
 
 
 class UserSeenItem(Base):
@@ -31,16 +33,21 @@ class UserSeenItem(Base):
 
     item = relationship(argument="Item", back_populates="seens")
 
+    __table_args__ = (
+        UniqueConstraint("user_id", "item_id", name="user_seen_items_unique"),
+    )
 
-# class ItemTrade(Base):
-#     __tablename__ = "item_trades"
-#     id = Column(BigInteger, primary_key=True, unique=True)
-#     item_offered_id = Column(BigInteger, ForeignKey(Item.id), nullable=False)
-#     item_requested_id = Column(BigInteger, ForeignKey(Item.id), nullable=False)
-#     offered_by_user_id = Column(BigInteger, nullable=False)
-#     # trade_status_id = Column(Integer, ForeignKey('item_trade_statuses.id'), nullable=False)
-#     # is_requested_agreed = Column(Integer, default=0)
-#     # created_at_utc = Column(DateTime(timezone=True), server_default=func.now())
-#
-#     item_requested = relationship(argument="Item", back_populates="trades")
-#     item_offered = relationship(argument="Item", back_populates="trades")
+
+class ItemTrade(Base):
+    __tablename__ = "item_trades"
+    id = Column(BigInteger, primary_key=True, unique=True)
+    item_requested_id = Column(BigInteger, ForeignKey(Item.id), nullable=False)
+    offered_by_user_id = Column(BigInteger, nullable=False)
+    created_at_utc = Column(DateTime, default=utcnow_without_tzinfo)
+    is_matched = Column(Boolean, default=False)
+
+    item_offered = relationship(argument="Item", back_populates="trades")
+
+    __table_args__ = (
+        UniqueConstraint("offered_by_user_id", "item_requested_id", name="user_trade_items_unique"),
+    )

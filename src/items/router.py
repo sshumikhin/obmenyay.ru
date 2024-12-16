@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from vk_id import User as VKUser
 from src.items.models import Item, UserSeenItem
-from src.items.service import create_item, skip_item
+from src.items.service import create_item, skip_item, like_item
 from src.postgres.api import get_entity_by_params, delete_entity
 from src.vk.dependencies import get_current_user
 from src.jinja import templates
@@ -102,45 +102,46 @@ async def append_item_endpoint(
         s3_path="",
     )
 
-    contents = await file.read()
-    img = Image.open(io.BytesIO(contents))
-    format = img.format
-    target_ratio = 9 / 16
-    try:
-        img = ImageOps.exif_transpose(img)
-    except AttributeError:
-        pass
-
-    width, height = img.size
-
-    if width / height > target_ratio:
-        new_height = int(width / target_ratio)
-        left = 0
-        top = (height - new_height) // 2
-        right = width
-        bottom = top + new_height
-    else:
-        left = 0
-        top = 0
-        right = width
-        bottom = height
-
-    cropped_img = img.crop((left, top, right, bottom))
-    output = io.BytesIO()
-
-    cropped_img.save(
-        output,
-        format=format,
-        quality=100
-    )
-
-    output.seek(0)
+    # contents = await file.read()
+    # img = Image.open(io.BytesIO(contents))
+    # format = img.format
+    # target_ratio = 9 / 16
+    # try:
+    #     img = ImageOps.exif_transpose(img)
+    # except AttributeError:
+    #     pass
+    #
+    # width, height = img.size
+    #
+    # if width / height > target_ratio:
+    #     new_height = int(width / target_ratio)
+    #     left = 0
+    #     top = (height - new_height) // 2
+    #     right = width
+    #     bottom = top + new_height
+    # else:
+    #     left = 0
+    #     top = 0
+    #     right = width
+    #     bottom = height
+    #
+    # cropped_img = img.crop((left, top, right, bottom))
+    # output = io.BytesIO()
+    #
+    # cropped_img.save(
+    #     output,
+    #     format=format,
+    #     quality=100
+    # )
+    #
+    # output.seek(0)
 
     item.s3_url_path = f"/users/{current_user.user_id}/items/{item.id}"
 
     try:
         await s3_client.upload_file(
-            file_stream=output.getvalue(),
+            # file_stream=output.getvalue(),
+            file_stream=file.file,
             file_name=item.s3_url_path)
 
         await session.commit()
@@ -264,7 +265,7 @@ async def delete_item_endpoint(
         await session.rollback()
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"message": "Внутренняя ошибка сервера"}
+            content={"message": str(e)}
         )
 
 
@@ -335,9 +336,10 @@ async def like_item_endpoint(
         session: AsyncSession = Depends(async_session)
 ):
     user_items = await get_entity_by_params(
-        session = session,
-        model= Item.id,
+        session=session,
+        model=Item.id,
         conditions=[Item.owner_id == int(vk_user.user_id)],
+        many=True
     )
 
     if user_items is None:
@@ -345,6 +347,56 @@ async def like_item_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"message": "У вас нет товаров, чтобы начать обмен"}
         )
+
+    if item_id in user_items:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "Вы не можете лайкнуть свой же предмет"}
+        )
+
+    item = await get_entity_by_params(
+        session=session,
+        model=Item,
+        conditions=[Item.id == item_id]
+    )
+
+    if item is None:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "Товар не был найден"}
+        )
+
+    is_skipped = await get_entity_by_params(
+        session=session,
+        model=UserSeenItem,
+        conditions=[
+            UserSeenItem.user_id == int(vk_user.user_id),
+            UserSeenItem.item_id == item_id
+        ]
+    )
+
+    if is_skipped is not None:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "Вы уже просматривали этот предмет"}
+        )
+
+    # TODO: при удалении товара удаляются и все его трейды и просмотры
+
+    await skip_item(
+        session=session,
+        item_id=item_id,
+        vk_user_id=int(vk_user.user_id)
+    )
+
+    await like_item(
+        session=session,
+        item_id=item_id,
+        vk_user_id=int(vk_user.user_id)
+    )
+
+    # TODO : отправлять пользователю оповещение о том, что его товар лайкнули в вк
+
 
 
 

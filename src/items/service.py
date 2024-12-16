@@ -1,6 +1,7 @@
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.items.models import Item, UserSeenItem
+from sqlalchemy.exc import IntegrityError
+from src.items.models import Item, UserSeenItem, ItemTrade
 
 
 async def create_item(
@@ -29,10 +30,29 @@ async def skip_item(
     item_id: int,
     vk_user_id: int
 ):
+    try:
+        session.add(
+            UserSeenItem(
+                user_id = vk_user_id,
+                item_id = item_id
+        ))
+        await session.commit()
+    except IntegrityError as e:
+        await session.rollback()
 
-    session.add(
-        UserSeenItem(
-            user_id = vk_user_id,
-            item_id = item_id
-    ))
-    await session.commit()
+
+async def like_item(
+        session: AsyncSession,
+        item_id: int,
+        vk_user_id: int
+):
+    try:
+        session.add(
+            ItemTrade(
+                offered_by_user_id = vk_user_id,
+                item_requested_id = item_id
+            )
+        )
+        await session.commit()
+    except IntegrityError as e:
+        await session.rollback()
