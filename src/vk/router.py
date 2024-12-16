@@ -170,7 +170,7 @@ async def get_code_state_device_id(
             session=session,
             user_id=int(vk_user.user_id),
             fullname=f"{vk_user.first_name} {vk_user.last_name}",
-            image_url=vk_user.image_url
+            image_url=vk_user.avatar
         )
     else:
         db_user.fullname = f"{vk_user.first_name} {vk_user.last_name}"
