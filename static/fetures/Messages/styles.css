@@ -117,6 +117,7 @@
     text-overflow: ellipsis;
 }
 
+
 @media (max-width: 425.99px) {
     .messages_container {
       border-radius: 0px;

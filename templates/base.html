@@ -9,13 +9,13 @@
     <meta name="keywords" content="обмен, вещи, взамен, обменяй" />
     <meta name="description" content="Обменяй.ру - сервис по обмену вещами" />
     <link rel="icon" type="image/svg+xml" href="/static/public/favicon.svg" />
-    <link rel="stylesheet" href="/static/index.css">
-    <link rel="stylesheet" href="/static/fetures/PersonalCabinet/index.css">
-    <link rel="stylesheet" href="/static/fetures/Home/home.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css"/>
-    <link rel="stylesheet" href="/static/fetures/Messages/styles.css">
+    <link rel="stylesheet" href="/static/index.css">
+    {% block head %}
+    {% endblock %}
     <title>Обменяй.ру</title>
-    <script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script>
+    {% block vkid %}
+    {% endblock %}
 </head>
 
 <body>
@@ -40,7 +40,6 @@
 
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
 
     <script>
         function setActiveButton(activeId) {

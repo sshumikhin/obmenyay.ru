@@ -1,0 +1,83 @@
+.trade_item_box{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    gap: .5rem;
+}
+
+.item{
+    background-color: black;
+    color: white;
+    padding: 20px;
+    min-width: 130px;
+    max-width: 130px;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.message_container{
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+.message_container::-webkit-scrollbar {
+    width: 6px;
+    height: 5px;
+    background-color: #ebebeb;
+}
+
+.message_container::-webkit-scrollbar-thumb {
+    background-color: #d1d1d1;
+    height: 5px;
+    width: 1px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.message_container::-webkit-scrollbar-thumb:hover {
+    background-color: #b1b1b1;
+    transition: all 0.2s ease;
+}
+
+
+.message{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 10px;
+}
+
+
+.message img{
+    width: 38px;
+    height: auto;
+    border-radius: 100%;
+}
+
+.message_text{
+    background-color: rgba(128, 128, 128, 0.302);
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.input_message{
+    display: flex;
+    align-items: center;
+    border-top: 1px solid rgba(128, 128, 128, 0.302);
+}
+.input_message input{
+    width: 100%;
+    padding: 10px 10px;
+    border: none;
+}
+
+.input_message img{
+    width: 32px;
+    height: auto;
+    padding-right: 10px;
+}
+
