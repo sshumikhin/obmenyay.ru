@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/static/fetures/PersonalCabinet/index.css">
     <link rel="stylesheet" href="/static/fetures/Home/home.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css"/>
+    <link rel="stylesheet" href="/static/fetures/Messages/styles.css">
     <title>Обменяй.ру</title>
     <script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script>
 </head>
@@ -26,12 +27,30 @@
                 {% endblock %}
             </main>
             <footer class="footer" id="footer">
-                <button  class="footer_button" id="message" onclick="window.location='https://obmenyay-ru.ru/chats'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/message.svg" alt=""></button>
-                <button class="footer_button" id="home" onclick="window.location='https://obmenyay-ru.ru/items/for-trade'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/home.svg" alt=""></button>
-                <button class="footer_button" id="personal_cabinet" onclick="window.location='https://obmenyay-ru.ru/items/my'" type="button"><img src="https://obmenyay-ru.ru/static/icon/fotter/user.svg" alt=""></button>
+                <button class="footer_button" id="message" onclick="setActiveButton('message'); window.location='https://obmenyay-ru.ru/chats'" type="button">
+                    <img src="https://obmenyay-ru.ru/static/icon/fotter/message.svg" alt="">
+                </button>
+                <button class="footer_button" id="home" onclick="setActiveButton('home'); window.location='https://obmenyay-ru.ru/items/for-trade'" type="button">
+                    <img src="https://obmenyay-ru.ru/static/icon/fotter/home.svg" alt="">
+                </button>
+                <button class="footer_button" id="personal_cabinet" onclick="setActiveButton('personal_cabinet'); window.location='https://obmenyay-ru.ru/items/my'" type="button">
+                    <img src="https://obmenyay-ru.ru/static/icon/fotter/user.svg" alt="">
+                </button>
             </footer>
+
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+
+    <script>
+        function setActiveButton(activeId) {
+            const buttons = document.querySelectorAll('.footer_button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            const activeButton = document.getElementById(activeId);
+            activeButton.classList.add('active');
+        }
+    </script>
 </body>
 </html>

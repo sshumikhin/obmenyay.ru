@@ -1,17 +1,77 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Meesages</h1>
+<section class="messages_container">
+    <h1>Chats</h1>
+        <div class="chats_container">
+        </div>
+</section>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const footer = document.getElementById('footer');
-    if (footer) {
+    <script>
+        let chats = {{ my_items | tojson | safe }};
+        const chatsContainer = document.querySelector('.chats_container');
+
+        chats.forEach(chat => {
+
+            const chatButton = document.createElement('button');
+            chatButton.classList.add('chat');
+            chatButton.id = chat.trade_id;
+
+
+
+            chatButton.onclick = () => {
+                window.location.href = `./messages.html`;
+            };
+
+
+            if (chat.is_my_item) {
+                const myItemDiv = document.createElement('div');
+                myItemDiv.classList.add('is_my_item');
+                myItemDiv.innerHTML = '<span>моё</span>';
+                chatButton.appendChild(myItemDiv);
+            }
+
+            const avatarContainer = document.createElement('div');
+            avatarContainer.classList.add('avatar_container');
+            const avatarImg = document.createElement('img');
+            avatarImg.src = chat.user.image_url;
+            avatarImg.alt = 'аватарка';
+            avatarContainer.appendChild(avatarImg);
+            chatButton.appendChild(avatarContainer);
+
+            const chatTextDiv = document.createElement('div');
+            chatTextDiv.classList.add('chat_text');
+
+            const labelContainer = document.createElement('label');
+            labelContainer.classList.add('label_container');
+
+            const userNameSpan = document.createElement('span');
+            userNameSpan.classList.add('label_container_userName');
+            userNameSpan.textContent = chat.user.fullname;
+
+            const itemNameSpan = document.createElement('span');
+            itemNameSpan.classList.add('label_container_nameItem');
+            itemNameSpan.id = chat.item.id;
+            itemNameSpan.textContent = chat.item.name;
+
+            labelContainer.appendChild(userNameSpan);
+            labelContainer.appendChild(itemNameSpan);
+            chatTextDiv.appendChild(labelContainer);
+
+            const lastMessageP = document.createElement('p');
+            lastMessageP.classList.add('chat_last_message');
+            lastMessageP.textContent = chat.last_message;
+            chatTextDiv.appendChild(lastMessageP);
+
+            chatButton.appendChild(chatTextDiv);
+            chatsContainer.appendChild(chatButton);
+        });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const footer = document.getElementById('footer');
         footer.classList.add('active');
-    }
-    initializeEventListeners(); // Ensure this is called after the function is defined
-    renderThings();
-});
-</script>
+    });
+    </script>
+
 
 {% endblock %}

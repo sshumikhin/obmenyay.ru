@@ -10,6 +10,14 @@
     box-sizing: border-box;
 }
 
+#VkIdSdkOneTap{
+     width: 300px;
+     position: absolute;
+     bottom: 80px;
+}
+
+
+
 html, body {
     height: 100vh;
     font-family: Comfortaa, sans-serif;
@@ -196,6 +204,12 @@ h1{
 }
 
 @media (max-width: 425.99px) {
+    #VkIdSdkOneTap{
+        width: 300px;
+        position: absolute;
+        bottom: 110px;
+    }
+
     html, body {
         background-image: url('../static/backgrounds/backgroundApp.jpg');
     }

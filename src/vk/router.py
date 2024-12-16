@@ -145,6 +145,7 @@ async def get_code_state_device_id(
         samesite="none",
         expires=432000
     )
+    # TODO: сохранять информацию о пользователе в БД
 
     return success_response
 

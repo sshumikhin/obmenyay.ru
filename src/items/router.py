@@ -265,7 +265,7 @@ async def delete_item_endpoint(
         await session.rollback()
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"message": str(e)}
+            content={"message": "Внутренняя ошибка сервера"}
         )
 
 

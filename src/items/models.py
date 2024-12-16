@@ -22,7 +22,7 @@ class Item(Base):
     is_available = Column(Boolean, default=True)
 
     seens = relationship(argument="UserSeenItem", back_populates="item", cascade="all, delete")
-    trades = relationship(argument="ItemTrade", back_populates="item_offered", cascade="all, delete")
+    trades = relationship(argument="ItemTrade", back_populates="item_requested", cascade="all, delete")
 
 
 class UserSeenItem(Base):
@@ -46,7 +46,8 @@ class ItemTrade(Base):
     created_at_utc = Column(DateTime, default=utcnow_without_tzinfo)
     is_matched = Column(Boolean, default=False)
 
-    item_offered = relationship(argument="Item", back_populates="trades")
+    item_requested = relationship(argument="Item", back_populates="trades")
+    # messages = relationship(argument="Message", cascade="all, delete")
 
     __table_args__ = (
         UniqueConstraint("offered_by_user_id", "item_requested_id", name="user_trade_items_unique"),
