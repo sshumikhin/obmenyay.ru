@@ -381,7 +381,7 @@ async def like_item_endpoint(
             content={"message": "Вы уже просматривали этот предмет"}
         )
 
-    # TODO: при удалении товара удаляются и все его трейды и просмотры
+    # TODO: при удалении товара удаляются и все их трейды и просмотры
 
     await skip_item(
         session=session,

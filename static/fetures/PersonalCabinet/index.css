@@ -65,9 +65,26 @@
     z-index: 2;
 }
 
+
 .add_button {
-    background: none;
-    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    justify-content: center;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.add_button img {
+   width: 24px;
+   height: auto;
+}
+
+
+.btn_box {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 #myDialog {

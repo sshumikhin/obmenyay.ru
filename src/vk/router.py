@@ -1,3 +1,4 @@
+import vk_id
 from fastapi import (
     APIRouter,
     status,
@@ -5,6 +6,7 @@ from fastapi import (
 )
 
 from fastapi.responses import RedirectResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 from vk_id import (
     generate_pkce,
     get_app_configuration,
@@ -18,6 +20,10 @@ from src.vk.dependencies import get_tokens
 from src.jinja import templates
 from src.redis_client.connection import redis_client
 from src.vk.schemas import GetTokens
+from .models import User
+from .services import create_user
+from ..postgres.api import get_entity_by_params
+from ..postgres.session import async_session
 
 router = APIRouter(
     prefix="/vk",
@@ -78,6 +84,7 @@ async def get_login_page(
 async def get_code_state_device_id(
         request: Request,
         tokens: GetTokens = Depends(get_tokens),
+        session: AsyncSession = Depends(async_session)
 ):
     authenticated_response = RedirectResponse("/")
 
@@ -145,7 +152,31 @@ async def get_code_state_device_id(
         samesite="none",
         expires=432000
     )
-    # TODO: сохранять информацию о пользователе в БД
+
+    vk_user = await vk_id.get_user_public_info(
+        access_token=tokens.access_token
+    )
+
+    db_user = await get_entity_by_params(
+        session=session,
+        model=User,
+        conditions=[
+           User.id == int(vk_user.user_id)
+        ]
+    )
+
+    if db_user is None:
+        await create_user(
+            session=session,
+            user_id=int(vk_user.user_id),
+            fullname=f"{vk_user.first_name} {vk_user.last_name}",
+            image_url=vk_user.image_url
+        )
+    else:
+        db_user.fullname = f"{vk_user.first_name} {vk_user.last_name}"
+        db_user.image_url = vk_user.image_url
+
+    await session.commit()
 
     return success_response
 
