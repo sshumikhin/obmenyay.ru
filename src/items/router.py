@@ -423,27 +423,26 @@ async def get_items_for_trade_endpoint(
 )
 async def get_my_items_endpoint(
         request: Request,
-        # vk_user: VKUser = Depends(get_current_user),
-        # session: AsyncSession = Depends(async_session),
+        vk_user: VKUser = Depends(get_current_user),
+        session: AsyncSession = Depends(async_session),
 ):
 
-    # items = await get_entity_by_params(
-    #     session=session,
-    #     model=Item,
-    #     conditions=[Item.owner_id == int(vk_user.user_id)],
-    #     many=True
-    # )
+    items = await get_entity_by_params(
+        session=session,
+        model=Item,
+        conditions=[Item.owner_id == int(vk_user.user_id)],
+        many=True
+    )
 
     return templates.TemplateResponse(
         "personal_cabinet.html",
         {
             "request": request,
-            "personal_things": []
-            # "username": f"{vk_user.first_name} {vk_user.last_name}",
-            # "personal_things": [{
-            #     "id": item.id,
-            #     "name": item.name,
-            #     "description": item.description
-            # } for item in items]
+            "username": f"{vk_user.first_name} {vk_user.last_name}",
+            "personal_things": [{
+                "id": item.id,
+                "name": item.name,
+                "description": item.description
+            } for item in items]
         }
     )

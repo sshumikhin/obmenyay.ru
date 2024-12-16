@@ -20,12 +20,10 @@ html, body {
 
 }
 
-/* Удаляем стандартные стили для списков */
 ul, ol {
     list-style: none;
 }
 
-/* Удаляем стандартные стили для ссылок */
 a {
     text-decoration: none;
     color: inherit; /* Сохраняем цвет текста */
