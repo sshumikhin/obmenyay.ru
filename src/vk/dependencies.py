@@ -7,13 +7,12 @@ from .constants import JWTTokens
 from vk_id import User, get_user_public_info
 
 
-
 async def get_tokens(request: Request) -> GetTokens:
     return GetTokens(
         access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
         refresh_token=request.cookies.get(str(JWTTokens.REFRESH.value)),
 )
-#
+
 
 async def get_current_user(request: Request) -> User | RedirectResponse:
 

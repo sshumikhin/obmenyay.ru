@@ -95,7 +95,7 @@ async def get_code_state_device_id(
     code = request.query_params.get("code", False)
     device_id = request.query_params.get("device_id", False)
 
-    if not(state and code and device_id):
+    if not (state and code and device_id):
         return authenticated_response
 
     vk_id_auth_params = await redis_client.connection.hgetall(state)
@@ -174,7 +174,7 @@ async def get_code_state_device_id(
         )
     else:
         db_user.fullname = f"{vk_user.first_name} {vk_user.last_name}"
-        db_user.image_url = vk_user.image_url
+        db_user.image_url = vk_user.avatar
 
     await session.commit()
 

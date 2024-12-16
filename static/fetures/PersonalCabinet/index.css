@@ -67,24 +67,47 @@
 
 
 .add_button {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    justify-content: center;
-    border: 1px solid black;
-    border-radius: 10px;
+     display: flex;
+     align-items: center;
+     gap: .5rem;
+     justify-content: center;
+     border: 1px solid black;
+     border-radius: 10px;
 }
 
 .add_button img {
-   width: 24px;
-   height: auto;
+     width: 24px;
+     height: auto;
 }
-
 
 .btn_box {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+
+.thing_list {
+   padding-right: 10px;
+}
+
+.thing_list::-webkit-scrollbar {
+     width: 6px;
+     height: 5px;
+     background-color: #ebebeb;
+}
+
+.thing_list::-webkit-scrollbar-thumb {
+    background-color: #d1d1d1;
+    height: 5px;
+    width: 1px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.thing_list::-webkit-scrollbar-thumb:hover {
+    background-color: #b1b1b1;
+    transition: all 0.2s ease;
 }
 
 #myDialog {
