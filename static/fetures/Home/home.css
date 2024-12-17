@@ -183,4 +183,7 @@ dialog {
     max-height: 440px;
     min-height: 440px;
   }
+  .home_container {
+    height: 100%;
+  }
 }

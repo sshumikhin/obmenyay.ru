@@ -7,4 +7,4 @@ class User(Base):
     __tablename__ = "vk_users"
     id = Column(BigInteger, primary_key=True)
     fullname = Column(String(255))
-    image_url = Column(String(255))
+    image_url = Column(String(10000))

@@ -217,12 +217,11 @@ h1{
         width: 100%;
         max-width: 425.99px;
     }
+
     .footer{
-        position: absolute;
-        z-index: 10;
-        bottom: 0;
-        border-radius: 0px;
+        position: fixed;
     }
+
     #VkIdSdkOneTap{
         width: 300px;
         position: absolute;

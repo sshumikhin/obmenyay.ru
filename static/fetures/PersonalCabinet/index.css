@@ -1,22 +1,18 @@
 .personal_cabinet {
     background-color: white;
+    border-radius: 50px 50px 0 0;
     width: 100%;
-    height: 100%;
-    border-radius: 50px 50px 0px 0px;
+    height: 700px; /* Фиксированная высота */
+    padding-top: 70px;
+    display: flex;
+    flex-direction: column;
 }
 
-.section_header {
-    background-color: white;
-    width: 100%;
-    height: 100px;
-    border-radius: 50px 50px 0px 0px;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.302);
-
-    display: flex;
-    justify-content: center;
-    align-items: end;
-
+.personal_cabinet h2 {
+    text-align: center;
+    font-size: 16px;
     padding-bottom: 10px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.302);
 }
 
 .personal_cabinet_main {
@@ -24,18 +20,20 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 20px;
-    height: calc(80% - 20px - 40px);
-    padding: 0px 20px;
+    height: 100%; /* Занимает всю доступную высоту */
+    padding: 0 20px;
+    padding-bottom: calc(1% + 50px); /* Учитывает высоту кнопок */
 }
 
- /* Кнопка добавить вещь */
- .add_button {
+.add_button {
     display: flex;
     align-items: center;
-    gap: .5rem;
+    gap: 0.5rem;
     justify-content: center;
     border: 1px solid black;
     border-radius: 10px;
+    background: none; /* Убираем фон */
+    padding: 10px;
 }
 
 .add_button img {
@@ -49,11 +47,18 @@
     gap: 20px;
 }
 
-/* Скролл */
+
 .thing_list {
-    padding-right: 10px;
+    display: flex;
+    overflow-y: auto; /* Полоса прокрутки появится только при необходимости */
+    overflow-x: hidden;
+    flex-direction: column;
+    gap: 0.5rem;
+    height: calc(100% - 100px); /* Установите высоту, учитывая высоту кнопок */
+    padding-right: 10px; /* Отступ справа для скролла */
 }
 
+/* Стили для скролла */
 .thing_list::-webkit-scrollbar {
     width: 6px;
     height: 5px;
@@ -62,18 +67,15 @@
 
 .thing_list::-webkit-scrollbar-thumb {
     background-color: #d1d1d1;
-    height: 5px;
-    width: 1px;
     border-radius: 10px;
     transition: all 0.2s ease;
 }
 
 .thing_list::-webkit-scrollbar-thumb:hover {
     background-color: #b1b1b1;
-    transition: all 0.2s ease;
 }
 
-/* Всплывашка для ошибки или успехе */
+/* Всплывашка для ошибок или успеха */
 .notification {
     position: fixed;
     top: 20px;
@@ -87,9 +89,12 @@
     transition: opacity 0.5s ease;
     opacity: 0;
 }
+
 .notification.success {
     background-color: #4CAF50;
 }
+
+/* Кнопка для перехода к объявлениям */
 .personal_cabinet_button {
     width: 100%;
     padding: 13px;
@@ -98,41 +103,21 @@
     background-color: rgba(0, 0, 0, 0.669);
 }
 
-.thing_list {
-    display: flex;
-    height: 100%;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    flex-direction: column;
-    gap: .5rem;
-}
-
-
-
+/* Стили для имени пользователя */
 #user_name {
     font-size: 32px;
 }
 
+/* Контейнер для пользователя */
 .user_box {
     padding-top: 20px;
     display: flex;
     flex-direction: column;
+    height: calc(100% - 120px - 20px); /* Учитывает высоту других элементов */
     gap: 20px;
 }
 
-.button_arrow {
-    background: none;
-
-    position: absolute;
-    left: 30px;
-    z-index: 2;
-}
-
-.add_button {
-    background: none;
-    padding: 10px;
-}
-
+/* Стили для диалогового окна */
 #myDialog {
     display: none;
     border-radius: 7px;
@@ -150,7 +135,6 @@
     gap: 1rem;
     justify-content: center;
 }
-
 dialog {
     display: flex;
     align-items: center;
@@ -166,11 +150,14 @@ dialog {
     z-index: 1000;
 }
 
+
+/* Стили для формы */
 .form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
+
 
 input {
     padding: 5px;
@@ -178,6 +165,7 @@ input {
     border-radius: 7px;
 }
 
+/* Кнопка для добавления вещи */
 .add_thing_button {
     background-color: rgba(0, 0, 0, 0.628);
     padding: 10px;
@@ -185,25 +173,41 @@ input {
     color: white;
 }
 
-.form_thing_input{
+/* Стили для ввода вещи */
+.form_thing_input {
     padding: 10px;
     background: none;
 }
 
-.close_modal{
+/* Кнопка закрытия модального окна */
+.close_modal {
     position: absolute;
     top: 5px;
     right: 10px;
     background: none;
     padding: 5px;
 }
+
+/* Стили для выделенного элемента */
 .selected {
     border: 2px solid green;
     background-color: rgba(144, 238, 144, 0.3);
-  }
-@media (max-width: 425.99px) {
+}
 
-    .section_header {
-        border-radius: 0px;
+
+
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 425.99px) {
+    .personal_cabinet {
+        border-radius: 0;
+        padding-top: 20px;
+        height: 100vh; /* Высота на мобильных устройствах */
+    }
+    .thing_list {
+        height: calc(100% - 80px); /* Учитывает высоту других элементов */
+    }
+    .personal_cabinet_main {
+        padding-bottom: calc(20% + 50px); /* Учитывает высоту кнопок */
     }
 }
