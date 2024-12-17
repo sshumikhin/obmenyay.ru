@@ -220,6 +220,9 @@ h1{
 
     .footer{
         position: fixed;
+        z-index: 10;
+        bottom: 0;
+        border-radius: 0px;
     }
 
     #VkIdSdkOneTap{
