@@ -160,37 +160,7 @@ h1{
     transition: all .25s ease;
 }
 
-.footer{
-    background-color: white;
-    width: 100%;
-    height: 80px;
-    border-radius: 0px 0px 50px 50px;
 
-    border-top: 1px solid rgba(128, 128, 128, 0.302);
-
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-
-    padding: 20px 20px;
-  display: none;
-}
-.footer.active{
-    display: flex;
-}
-.footer_button{
-    padding: 10px;
-    width: 100%;
-    border-radius: 50px;
-    background: none;
-}
-.footer_button img {
-    width: 32px;
-    height: 32px;
-}
-.footer_button.active{
-    background: rgb(255, 172, 186);
-}
 
 @media (max-width: 425.99px) {
     html, body {
@@ -216,13 +186,6 @@ h1{
     .content_box{
         width: 100%;
         max-width: 425.99px;
-    }
-
-    .footer{
-        position: fixed;
-        z-index: 10;
-        bottom: 0;
-        border-radius: 0px;
     }
 
     #VkIdSdkOneTap{

@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-
 {% block head %}
     <link rel="stylesheet" href="/static/fetures/Messages/styles.css">
 {% endblock %}
@@ -8,30 +7,57 @@
 {% block vkid %}
 {% endblock %}
 
-
 {% block content %}
 <section class="messages_container">
     <h1>Chats</h1>
-        <div class="chats_container">
+    <div class="chats_container" id="chatsContainer">
         </div>
 </section>
 
-    <script>
-        let chats = {{ my_items | tojson | safe }};
-        const chatsContainer = document.querySelector('.chats_container');
+<script>
+    const chatsContainer = document.getElementById('chatsContainer');
+    let websocket;
+
+    function connectWebSocket() {
+        websocket = new WebSocket(`ws://localhost:7777/chats/ws/`);
+
+        websocket.onopen = () => {
+            console.log("WebSocket connection opened");
+            // Отправляем запрос на получение начальных данных (если необходимо)
+            websocket.send(JSON.stringify({ type: "get_chats" }));
+        };
+
+        websocket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "chats_update" || data.type === "initial_chats") {
+                displayChats(data.chats);
+            } else if (data.type === "new_message") {
+                updateChat(data.chat_id, data.message);
+            }
+        };
+
+        websocket.onclose = () => {
+            console.log("WebSocket connection closed. Reconnecting in 3 seconds...");
+            setTimeout(connectWebSocket, 3000); // Попытка переподключения
+        };
+
+        websocket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+    }
+
+    function displayChats(chats) {
+        chatsContainer.innerHTML = ''; // Очищаем контейнер перед обновлением
 
         chats.forEach(chat => {
-
             const chatButton = document.createElement('button');
             chatButton.classList.add('chat');
             chatButton.id = chat.trade_id;
 
-
-
             chatButton.onclick = () => {
-                window.location.href = `./messages.html`;
+                window.location.href = `./messages.html?trade_id=${chat.trade_id}`; // Передача trade_id
             };
-
 
             if (chat.is_my_item) {
                 const myItemDiv = document.createElement('div');
@@ -69,18 +95,29 @@
 
             const lastMessageP = document.createElement('p');
             lastMessageP.classList.add('chat_last_message');
-            lastMessageP.textContent = chat.last_message;
+            lastMessageP.textContent = chat.last_message || ""; // Обработка случая отсутствия сообщений
             chatTextDiv.appendChild(lastMessageP);
 
             chatButton.appendChild(chatTextDiv);
             chatsContainer.appendChild(chatButton);
         });
+    }
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    function updateChat(chat_id, message) {
+        const chatButton = document.getElementById(chat_id);
+        if (chatButton) {
+            const lastMessageP = chatButton.querySelector('.chat_last_message');
+            if (lastMessageP) {
+                lastMessageP.textContent = message;
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        connectWebSocket();
         const footer = document.getElementById('footer');
         footer.classList.add('active');
     });
-    </script>
-
+</script>
 
 {% endblock %}
