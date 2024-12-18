@@ -20,8 +20,9 @@
                                 <img src="https://obmenyay-ru.ru/static/icon/persobnalCabinet/close.svg"
                                     alt="close_form">
                             </button>
+
                             <form class="form" id="add_thing_form">
-                                <input id="thing_name" class="form_thing_input" type="text" placeholder="имя вещи"
+                                <input id="name" class="form_thing_input" type="text" placeholder="имя вещи"
                                     required>
                                 <div id="error_message_1" style="color: red; font-size: 12px;"></div>
                                 <input id="thing_description" class="form_thing_input" type="text"
@@ -33,6 +34,7 @@
                                     style="display: none; max-width: 200px; margin-top: 10px;">
                                 <button type="button" class="add_thing_button">Добавить вещь</button>
                             </form>
+
                         </dialog>
                         <div class="btn_box">
                             <button type="button" onclick="window.myDialog.showModal()" class="add_button">
@@ -132,7 +134,7 @@ const showNotification = (message,type = 'error') => {
 
         const addNewThing = async () => {
             const form = document.getElementById('add_thing_form');
-            const thing_name = document.getElementById('thing_name').value;
+            const thing_name = document.getElementById('name').value;
             const thing_description = document.getElementById('thing_description').value;
             const imageFile = document.getElementById('file_input').files[0];
 
@@ -150,8 +152,13 @@ const showNotification = (message,type = 'error') => {
                     body: formData
                 }).then(()=>{
                     window.myDialog.close();
-                    personal_things.push(formData);
+                    personal_things.push({
+                        name:`${thing_name}`,
+                        dedescription:`${thing_description}`,
+                        file:`${thing_name},jpg`,
+                    });
                     renderThings();
+                    showNotification('Товар успешно добавлен!', 'success');
                 }).catch(()=>{
                     throw new Error('Ошибка при добавлении товара');
                 });
@@ -167,9 +174,6 @@ const showNotification = (message,type = 'error') => {
                 showNotification(`Произошла ошибка: ${error.message}`);
             }
         };
-
-
-
 
 
 
