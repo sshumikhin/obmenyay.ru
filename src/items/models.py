@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship
 
 from src.postgres.models import Base
 from src.postgres.utils import utcnow_without_tzinfo
+from src.vk.models import User
 
 
 class Item(Base):
@@ -17,10 +18,11 @@ class Item(Base):
     id = Column(BigInteger, primary_key=True, unique=True, autoincrement=True)
     name = Column(String(255))
     description = Column(String(255), nullable=True)
-    owner_id = Column(BigInteger)
+    owner_id = Column(BigInteger, ForeignKey(User.id))
     s3_url_path = Column(String(255))
     is_available = Column(Boolean, default=True)
 
+    owner = relationship(argument="User")
     seens = relationship(argument="UserSeenItem", back_populates="item", cascade="all, delete")
     trades = relationship(argument="ItemTrade", back_populates="item_requested", cascade="all, delete")
 
@@ -42,12 +44,12 @@ class ItemTrade(Base):
     __tablename__ = "item_trades"
     id = Column(BigInteger, primary_key=True, unique=True)
     item_requested_id = Column(BigInteger, ForeignKey(Item.id), nullable=False)
-    offered_by_user_id = Column(BigInteger, nullable=False)
+    offered_by_user_id = Column(BigInteger, ForeignKey(User.id), nullable=False)
     created_at_utc = Column(DateTime, default=utcnow_without_tzinfo)
     is_matched = Column(Boolean, default=False)
 
     item_requested = relationship(argument="Item", back_populates="trades")
-    # messages = relationship(argument="Message", cascade="all, delete")
+    interested_user = relationship(argument="User")
 
     __table_args__ = (
         UniqueConstraint("offered_by_user_id", "item_requested_id", name="user_trade_items_unique"),

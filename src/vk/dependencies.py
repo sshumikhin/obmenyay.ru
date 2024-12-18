@@ -13,7 +13,6 @@ async def get_tokens(request: Request) -> GetTokens:
         refresh_token=request.cookies.get(str(JWTTokens.REFRESH.value)),
 )
 
-
 async def get_current_user(request: Request) -> User | RedirectResponse:
 
     tokens = await get_tokens(request)

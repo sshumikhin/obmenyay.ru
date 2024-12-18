@@ -2,7 +2,8 @@ from sqlalchemy import (
     Column,
     BigInteger,
     ForeignKey,
-    Text
+    Text,
+    Boolean
 )
 
 from src.postgres.models import Base
@@ -14,3 +15,4 @@ class Message(Base):
     trade_id = Column(BigInteger, ForeignKey("item_trades.id"))
     user_id = Column(BigInteger)
     text = Column(Text)
+    is_seen = Column(Boolean, default=False)
