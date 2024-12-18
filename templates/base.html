@@ -58,27 +58,32 @@
 
         </div>
     </div>
-    <script>
-        function setActiveButton(activeId) {
+<script>
+    function setActiveButton(activeId) {
+        const buttons = document.querySelectorAll('.menu_button');
 
-            const buttons = document.querySelectorAll('.menu_button');
+        buttons.forEach(button => {
+            button.classList.remove('active');
+        });
+
+        const activeButton = document.getElementById(activeId);
+        activeButton.classList.add('active');
+
+        localStorage.setItem('activeButton', activeId);
+    }
 
 
-            buttons.forEach(button => {
-                button.classList.remove('active');
-            });
+    window.onload = function() {
+        const savedButtonId = localStorage.getItem('activeButton') || 'personal_cabinet'; // По умолчанию 'personal_cabinet'
+        setActiveButton(savedButtonId);
+    };
 
-            const activeButton = document.getElementById(activeId);
-            activeButton.classList.add('active');
-        }
-
-        document.getElementById('burger').addEventListener('click', function() {
-            const menu = document.getElementById('menu');
-            const burger = document.getElementById('burger');
-            menu.classList.toggle('active');
-            burger.classList.toggle('active');
-});
-
-    </script>
+    document.getElementById('burger').addEventListener('click', function() {
+        const menu = document.getElementById('menu');
+        const burger = document.getElementById('burger');
+        menu.classList.toggle('active');
+        burger.classList.toggle('active');
+    });
+</script>
 </body>
 </html>
