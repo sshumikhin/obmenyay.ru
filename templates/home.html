@@ -56,17 +56,19 @@ async function fetchItems() {
 }
 
 async function renderItem(item) {
-    const card = document.createElement('div');
-    card.setAttribute('name', 'thing_card_name');
-    card.setAttribute('id', `card_${item.id}`);
-    card.classList.add('card');
-    card.innerHTML = `
-        <img src="${item.s3_url_path}" alt="Картинка товара">
-        <span>${item.name}</span>
-        <p>${item.description}</p>
+        const card = document.createElement('div');
+        card.setAttribute('name', 'thing_card_name');
+        card.setAttribute('id', `card_${thing.id}`);
+        card.classList.add('card');
+        card.innerHTML = `
+        <div class="img_container" style="background-image: url(${thing.img});">
+            <img src="${thing.img}" alt="thing_photo">
+        </div>
+      <span>${thing.name}</span>
+      <p>${thing.description}</p>
     `;
-    cardContainer.appendChild(card);
-}
+        cardContainer.appendChild(card);
+    }
 
 async function skipItem(itemId) {
   const numericItemId = parseInt(itemId);
