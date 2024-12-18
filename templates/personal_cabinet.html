@@ -152,11 +152,11 @@ const showNotification = (message,type = 'error') => {
                     window.myDialog.close();
                     personal_things.push(formData);
                     renderThings();
+                }).catch(()=>{
+                    throw new Error('Ошибка при добавлении товара');
                 });
 
-                if (!response.ok) throw new Error('Ошибка при добавлении товара');
 
-                showNotification('Товар успешно добавлен!', 'success');
 
                 window.myDialog.close();
                 form.reset();
@@ -167,6 +167,7 @@ const showNotification = (message,type = 'error') => {
                 showNotification(`Произошла ошибка: ${error.message}`);
             }
         };
+
 
 
 
