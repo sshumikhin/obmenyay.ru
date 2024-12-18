@@ -42,22 +42,36 @@
             </div>
 
             <nav class="menu" id="menu">
-                <button class="menu_button active" id="message" type="button" onclick="window.location='https://obmenyay-ru.ru/chats''">
-                    <img src="https://obmenyay-ru.ru/static/icon/fotter/message.svg" alt="Message">
+                <button class="menu_button" id="message" type="button" onclick="setActiveButton('message'); window.location.href='https://obmenyay-ru.ru/chats'">
+                    <img src="../static/icon/fotter/message.svg" alt="Message">
                     <span>Messages</span>
                 </button>
-                <button class="menu_button" id="home" type="button" onclick="window.location='https://obmenyay-ru.ru/items/for-trade'">
-                    <img src="https://obmenyay-ru.ru/static/icon/fotter/home.svg" alt="Home">
+                <button class="menu_button" id="home" type="button" onclick=" setActiveButton('home'); window.location.href='https://obmenyay-ru.ru/items/for-trade'">
+                    <img src="../static/icon/fotter/home.svg" alt="Home">
                     <span>Home</span>
                 </button>
-                <button class="menu_button" id="personal_cabinet" type="button" onclick="window.location='https://obmenyay-ru.ru/items/my'">
-                    <img src="https://obmenyay-ru.ru/static/icon/fotter/user.svg" alt="User ">
+                <button class="menu_button" id="personal_cabinet" type="button" onclick=" setActiveButton('personal_cabinet'); window.location.href='https://obmenyay-ru.ru/items/my'">
+                    <img src="../static/icon/fotter/user.svg" alt="User ">
                     <span>Profile</span>
                 </button>
             </nav>
+
         </div>
     </div>
     <script>
+        function setActiveButton(activeId) {
+
+            const buttons = document.querySelectorAll('.menu_button');
+
+
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            const activeButton = document.getElementById(activeId);
+            activeButton.classList.add('active');
+        }
+
         document.getElementById('burger').addEventListener('click', function() {
             const menu = document.getElementById('menu');
             const burger = document.getElementById('burger');
