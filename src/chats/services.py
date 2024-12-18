@@ -26,20 +26,21 @@ async def get_active_trades(
     trades = (await session.execute(query)).scalars().all()
 
     content = []
+
     for trade in trades:
         trade_info = {}
         trade_info["trade_id"] = trade.id
-        is_my_item = trade.offered_by_user_id != current_user_id
+        is_my_item = trade.item_requested.owner_id == current_user_id
         trade_info["is_my_item"] = is_my_item
 
-        if not is_my_item:
+        if trade.item_requested.owner_id == current_user_id:
             trade_info["user"] = {
                 "fullname": trade.interested_user.fullname,
                 "image_url": trade.interested_user.image_url
             }
         else:
             trade_info["user"] = {
-                "fullname" : trade.item_requested.owner.fullname,
+                "fullname": trade.item_requested.owner.fullname,
                 "image_url": trade.item_requested.owner.image_url
             }
 
