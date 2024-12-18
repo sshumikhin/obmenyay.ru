@@ -13,6 +13,7 @@ from src.jinja import templates
 from src.postgres.api import get_entity_by_params
 from src.postgres.session import async_session
 from src.vk.constants import JWTTokens
+from src.vk.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/chats"
@@ -68,7 +69,16 @@ async def send_initial_chats(websocket: WebSocket, session, user_id: int):
         current_user_id=user_id
     )
 
-    await websocket.send_text(json.dumps({"type": "initial_chats", "chats": chats_list}))
+
+    chats = {}
+
+    idx = 1
+    for chat in chats_list:
+        chats[idx] = chat
+        idx += 1
+
+    chats = list(chats.values())
+    await websocket.send_text(json.dumps({"type": "initial_chats", "chats": chats}))
 
 
 @router.get("/")
@@ -88,7 +98,7 @@ async def websocket_endpoint(
 
     try:
         user = await vk_id.get_user_public_info(
-            access_token=websocket.cookies.get(str(JWTTokens.ACCESS.value))
+            access_token=websocket.cookies.get(str(JWTTokens.ACCESS.value)),
         )
     except Exception as _:
         await websocket.close()
@@ -109,7 +119,11 @@ async def websocket_endpoint(
         while True:
             data = await websocket.receive_json()
             if data.get("type") == "get_chats":
-                await send_initial_chats(websocket)
+                await send_initial_chats(
+                    websocket=websocket,
+                    session=session,
+                    user_id=int(user.user_id)
+                )
             elif data.get("type") == "send_message":
                 chat_id = data.get("chat_id")
                 message = data.get("message")
@@ -129,3 +143,28 @@ async def websocket_endpoint(
         print(f"RuntimeError: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
+
+
+
+@router.get(
+    path="/1")
+async def test_endpoint(
+        vk_user: vk_id.User = Depends(get_current_user),
+        session: AsyncSession = Depends(async_session)):
+    user_items = await get_entity_by_params(
+        session=session,
+        model=Item.id,
+        conditions=[
+            Item.owner_id == int(vk_user.user_id)
+        ],
+        many=True
+    )
+
+    chats_list = await get_active_trades(
+        session=session,
+        user_items_ids=user_items,
+        current_user_id=int(vk_user.user_id)
+    )
+
+    return chats_list
+

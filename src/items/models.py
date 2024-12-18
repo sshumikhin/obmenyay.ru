@@ -24,7 +24,6 @@ class Item(Base):
 
     owner = relationship(argument="User")
     seens = relationship(argument="UserSeenItem", back_populates="item", cascade="all, delete")
-    trades = relationship(argument="ItemTrade", back_populates="item_requested", cascade="all, delete")
 
 
 class UserSeenItem(Base):
@@ -48,7 +47,7 @@ class ItemTrade(Base):
     created_at_utc = Column(DateTime, default=utcnow_without_tzinfo)
     is_matched = Column(Boolean, default=False)
 
-    item_requested = relationship(argument="Item", back_populates="trades")
+    item_requested = relationship(argument="Item")
     interested_user = relationship(argument="User")
 
     __table_args__ = (

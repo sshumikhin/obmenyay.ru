@@ -6,6 +6,14 @@
     gap: .5rem;
 }
 
+
+.last_message_container {
+   display: flex;
+   align-items: center;
+   gap: 0.5rem;
+}
+
+
 .item{
     background-color: black;
     color: white;
