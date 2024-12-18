@@ -87,13 +87,16 @@
     text-overflow: ellipsis;
 }
 
-.label_container_nameItem{
+.label_container_nameItem {
+    text-align: left;
+    width: 100px;
     font-size: 14px;
     color: rgba(59, 59, 59, 0.302);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 
 .is_my_item {
     position: absolute;
