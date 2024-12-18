@@ -2,16 +2,11 @@ import asyncio
 import json
 from typing import List, Dict
 
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request
 from fastapi import WebSocket, WebSocketDisconnect
 
-from src.items.models import Item, ItemTrade
 from src.jinja import templates
-from vk_id import User as VKUser
 
-from src.postgres.api import get_entity_by_params
-from src.postgres.session import async_session
-from src.vk.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/chats"
@@ -44,9 +39,11 @@ chats_data: Dict[int, dict] = {
 
 active_connections: List[WebSocket] = []
 
+
 async def send_chats_update(websocket: WebSocket):
     chats_list = list(chats_data.values())
     await websocket.send_text(json.dumps({"type": "chats_update", "chats": chats_list}))
+
 
 async def send_initial_chats(websocket: WebSocket):
     chats_list = list(chats_data.values())
@@ -64,7 +61,7 @@ async def websocket_endpoint(websocket: WebSocket):
     active_connections.append(websocket)
 
     try:
-        await send_initial_chats(websocket) # Отправляем начальные данные при подключении
+        await send_initial_chats(websocket)
 
         while True:
             data = await websocket.receive_json()
@@ -81,7 +78,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             "chat_id": chat_id,
                             "message": message
                         }))
-            await asyncio.sleep(1) # Чтобы не загружать процессор в цикле
+            await asyncio.sleep(1)
     except WebSocketDisconnect:
         active_connections.remove(websocket)
         print("Client disconnected")

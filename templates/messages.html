@@ -19,7 +19,7 @@
     let websocket;
 
     function connectWebSocket() {
-        websocket = new WebSocket(`ws://localhost:7777/chats/ws/`);
+        websocket = new WebSocket(`wss://obmenyay-ru.ru/chats/ws/`);
 
         websocket.onopen = () => {
             console.log("WebSocket connection opened");
