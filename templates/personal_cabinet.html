@@ -130,7 +130,7 @@ const showNotification = (message,type = 'error') => {
             }, 4000);
         };
 
-const addNewThing = async () => {
+        const addNewThing = async () => {
             const form = document.getElementById('add_thing_form');
             const thing_name = document.getElementById('thing_name').value;
             const thing_description = document.getElementById('thing_description').value;
@@ -150,16 +150,11 @@ const addNewThing = async () => {
                     body: formData
                 }).then(()=>{
                     window.myDialog.close();
+                    personal_things.push(formData);
+                    renderThings();
                 });
 
-
                 if (!response.ok) throw new Error('Ошибка при добавлении товара');
-
-                const addedThing = await response.json();
-
-                personal_things.push(addedThing);
-
-                renderThings();
 
                 showNotification('Товар успешно добавлен!', 'success');
 
@@ -172,6 +167,7 @@ const addNewThing = async () => {
                 showNotification(`Произошла ошибка: ${error.message}`);
             }
         };
+
 
 
 
