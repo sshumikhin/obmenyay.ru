@@ -125,6 +125,14 @@
         });
     }
 
-    connectWebSocket();
+    document.addEventListener('DOMContentLoaded', async () => {
+     const burger = document.querySelector('.burger-menu');
+            if (burger) {
+                burger.classList.add('active');
+            }
+            connectWebSocket();
+        });
+
+
 </script>
 {% endblock %}
