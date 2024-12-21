@@ -106,26 +106,46 @@ async def get_chats_for_user(session: AsyncSession, user_id: int):
 @router.get("/sse")
 async def chats_sse(request: Request, session: AsyncSession = Depends(async_session)):
     async def stream():
-        # user = await vk_id.get_user_public_info(
-        #     access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
-        # )
-        # if isinstance(user, vk_id.Error) or user is None:
-        #     yield f"data: {json.dumps({'type': 'error', 'message': 'Unauthorized'})}\n\n"
-        #     return
-        # active_sse_connections.add(request)
+        user = None
+
+        try:
+            user = await vk_id.get_user_public_info(
+                access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
+            )
+
+        except Exception as _:
+            active_sse_connections.remove(request)
+
+        finally:
+            if isinstance(user, vk_id.Error) or user is None:
+                active_sse_connections.remove(request)
+
+        active_sse_connections.add(request)
         try:
             while True:
-                chats = await get_chats_for_user(session, 1234)
-                data = {"type": "initial_chats", "chats": chats}
-                yield f"data: {json.dumps(data)}\n\n"
-                await asyncio.sleep(5)
+               user_items = await get_entity_by_params(
+                    session=session,
+                    model=Item.id,
+                    conditions=[
+                        Item.owner_id == int(user.user_id)
+                    ],
+                    many=True
+               )
+
+               chats_list = await get_active_trades(
+                  session=session,
+                  user_items_ids=user_items,
+                  current_user_id=int(user.user_id)
+               )
+               yield f"{json.dumps({"type": "initial_chats", "chats": chats_list})}\n\n"
+               await asyncio.sleep(5)
         except asyncio.CancelledError:
             print("Client disconnected from SSE")
         finally:
-            active_sse_connections.remove(request)
+            if request in active_sse_connections:
+                active_sse_connections.remove(request)
 
     return EventSourceResponse(stream())
-#
 #
 # @router.get(
 #     path="/1")
