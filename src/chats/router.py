@@ -6,6 +6,7 @@ import vk_id
 from fastapi import APIRouter, Request, Depends
 from fastapi import WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import StreamingResponse
 
 from src.chats.services import get_active_trades
 from src.items.models import Item
@@ -89,64 +90,41 @@ async def get_chats(request: Request, trade_id: Optional[int] = None):
     return templates.TemplateResponse("messages.html", {"request": request})
 
 
-@router.websocket("/ws/")
-async def websocket_endpoint(
-        websocket: WebSocket,
-        session: AsyncSession = Depends(async_session)
-):
+active_sse_connections = set()
 
-    await websocket.accept()
 
-    user = None
+async def get_chats_for_user(session: AsyncSession, user_id: int):
+    # result = await session.execute(select(Chat).where(Chat.user_id == user_id))
+    # chats = result.scalars().all()
+    # return chats
+    return [
+        {"trade_id": 1, "is_my_item": True, "user": {"image_url":"url", "fullname": "name"}, "item": {"id": 1, "name": "item"}, "last_message": {"is_seen": True, "text": "text"}},
+        {"trade_id": 2, "is_my_item": False, "user": {"image_url":"url", "fullname": "name2"}, "item": {"id": 2, "name": "item2"}, "last_message": {"is_seen": False, "text": "text2"}}
+    ]
 
-    try:
+
+@router.get("/sse")
+async def chats_sse(request: Request, session: AsyncSession = Depends(async_session)):
+    async def stream():
         user = await vk_id.get_user_public_info(
-            access_token=websocket.cookies.get(str(JWTTokens.ACCESS.value)),
+            access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
         )
-    except Exception as _:
-        await websocket.close()
-
-    finally:
         if isinstance(user, vk_id.Error) or user is None:
-            await websocket.close()
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Unauthorized'})}\n\n"
+            return
+        active_sse_connections.add(request)
+        try:
+            while True:
+                chats = await get_chats_for_user(session, int(user.user_id))
+                data = {"type": "initial_chats", "chats": chats}
+                yield f"data: {json.dumps(data)}\n\n"
+                await asyncio.sleep(5)
+        except asyncio.CancelledError:
+            print("Client disconnected from SSE")
+        finally:
+            active_sse_connections.remove(request)
 
-    active_connections.append(websocket)
-
-    try:
-        await send_initial_chats(
-            websocket=websocket,
-            session=session,
-            user_id=int(user.user_id)
-        )
-
-        while True:
-            data = await websocket.receive_json()
-            if data.get("type") == "get_chats":
-                await send_initial_chats(
-                    websocket=websocket,
-                    session=session,
-                    user_id=int(user.user_id)
-                )
-            elif data.get("type") == "send_message":
-                chat_id = data.get("chat_id")
-                message = data.get("message")
-                if chat_id and message:
-                    chats_data[chat_id]["last_message"] = message
-                    for connection in active_connections:
-                        await connection.send_text(json.dumps({
-                            "type": "new_message",
-                            "chat_id": chat_id,
-                            "message": message
-                        }))
-            await asyncio.sleep(1)
-    except WebSocketDisconnect:
-        active_connections.remove(websocket)
-        print("Client disconnected")
-    except RuntimeError as e:
-        print(f"RuntimeError: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-
+    return StreamingResponse(stream(), media_type="text/event-stream")
 
 
 @router.get(
