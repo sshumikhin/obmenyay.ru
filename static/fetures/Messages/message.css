@@ -6,25 +6,34 @@
     gap: .5rem;
 }
 
-
-.last_message_container {
-   display: flex;
-   align-items: center;
-   gap: 0.5rem;
-}
-
-
 .item{
     background-color: black;
     color: white;
-    padding: 20px;
+    padding: 15px;
+    height: 100%;
     min-width: 130px;
     max-width: 130px;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 10px;
+    font-size: 12px;
+}
+
+.section_head {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.302);
+}
+
+#delete_chat_btn{
+    background: none;
 }
 
 .message_container{
+    position: relative;
     display: flex;
     flex-direction: column;
     overflow-y: scroll;
@@ -54,7 +63,7 @@
 
 .message{
     display: flex;
-    align-items: center;
+    align-items: start;
     gap: 1rem;
     padding: 10px;
 }
@@ -67,16 +76,26 @@
 }
 
 .message_text{
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+.message_text p{
     background-color: rgba(128, 128, 128, 0.302);
     padding: 5px;
     border-radius: 10px;
 }
 
 .input_message{
-    display: flex;
+    display: none;
     align-items: center;
     border-top: 1px solid rgba(128, 128, 128, 0.302);
 }
+
+.input_message.agree{
+    display: flex;
+}
+
 .input_message input{
     width: 100%;
     padding: 10px 10px;
@@ -89,3 +108,162 @@
     padding-right: 10px;
 }
 
+/* Стили для диалогового окна */
+#choose_thing {
+    display: none;
+    border-radius: 7px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    min-width: 300px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#choose_thing[open] {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+}
+#delete_chat{
+    display: none;
+    border-radius: 7px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    min-width: 300px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+#delete_chat[open] {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+}
+dialog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    max-width: 350px;
+    border: none;
+    border-radius: 7px;
+    padding: 0px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+.text_container{
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    padding-right: 10px;
+}
+.thing_container{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: .5rem;
+    overflow-y: scroll;
+    max-height: 300px;
+    padding-right: 10px;
+}
+/* Стили для скролла */
+.thing_container::-webkit-scrollbar {
+    width: 6px;
+    height: 5px;
+    background-color: #ebebeb;
+}
+
+.thing_container::-webkit-scrollbar-thumb {
+    background-color: #d1d1d1;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.thing_container::-webkit-scrollbar-thumb:hover {
+    background-color: #b1b1b1;
+}
+.personal_thing{
+    display: flex;
+    text-align: left;
+    background: none;
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+
+/* new */
+.notification_container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    display: none;
+
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #b1b1b16a;
+
+
+    position: absolute;
+    width: 230px;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%)
+}
+.notification_container.active{
+    display: block;
+}
+.notification_container_choices{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+
+    display: none;
+
+    padding: 10px;
+    text-align: center;
+    border-radius: 10px;
+    background-color: #b1b1b16a;
+
+    position: absolute;
+    width: 230px;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%)
+}
+.notification_container_choices.active{
+    display: block;
+}
+
+.choice_btn_box{
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: 1rem;
+}
+.selected {
+    background-color: #d1e7dd;
+}
+.agree_btn{
+    background-color: white;
+    border-radius: 10px;
+    padding: 5px;
+    min-width: 100px;
+}
+.refusal_btn{
+    background-color: white;
+    border-radius: 10px;
+    padding: 5px;
+    min-width: 100px;
+}

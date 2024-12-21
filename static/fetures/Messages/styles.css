@@ -9,15 +9,21 @@
     flex-direction: column;
 }
 
-
-
 .messages_container h1 {
     text-align: center;
     font-size: 16px;
     padding-bottom: 10px;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.302);
-}
 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+
+}
+.h1_chats{
+    border-bottom: 1px solid rgba(128, 128, 128, 0.302);
+
+}
 .chats_container {
     display: flex;
     flex-direction: column;
@@ -87,16 +93,13 @@
     text-overflow: ellipsis;
 }
 
-.label_container_nameItem {
-    text-align: left;
-    width: 100px;
+.label_container_nameItem{
     font-size: 14px;
     color: rgba(59, 59, 59, 0.302);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 
 .is_my_item {
     position: absolute;
@@ -123,6 +126,68 @@
     text-overflow: ellipsis;
 }
 
+
+.last_message_container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.delete_chat_button {
+    position: absolute;
+    right: 10px;
+    bottom: 5px;
+    padding: 3px 5px;
+    display: flex;
+    align-items: center;
+    background: none;
+    border-radius: 10px;
+}
+#delete_chat{
+    display: none;
+    border-radius: 7px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    min-width: 300px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+#delete_chat[open] {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+}
+dialog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    max-width: 350px;
+    border: none;
+    border-radius: 7px;
+    padding: 0px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+.text_container{
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    padding-right: 10px;
+}
+
+.close_modal {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: none;
+    padding: 5px;
+}
 
 @media (max-width: 425.99px) {
     .messages_container {

@@ -83,6 +83,11 @@ async def send_initial_chats(websocket: WebSocket, session, user_id: int):
 
 @router.get("/")
 async def get_chats(request: Request):
+    return templates.TemplateResponse("chats.html", {"request": request})
+
+
+@router.get("/{chat_id}")
+async def get_chat_by_id(request: Request, chat_id: int):
     return templates.TemplateResponse("messages.html", {"request": request})
 
 
