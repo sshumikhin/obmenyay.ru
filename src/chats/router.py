@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import vk_id
 from fastapi import APIRouter, Request, Depends
@@ -82,12 +82,10 @@ async def send_initial_chats(websocket: WebSocket, session, user_id: int):
 
 
 @router.get("/")
-async def get_chats(request: Request):
-    return templates.TemplateResponse("chats.html", {"request": request})
+async def get_chats(request: Request, trade_id: Optional[int] = None):
+    if trade_id is None:
+        return templates.TemplateResponse("chats.html", {"request": request})
 
-
-@router.get("/")
-async def get_chat_by_id(request: Request, trade_id: int):
     return templates.TemplateResponse("messages.html", {"request": request})
 
 
