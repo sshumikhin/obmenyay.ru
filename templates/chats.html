@@ -57,7 +57,7 @@
             chatButton.id = chat.trade_id;
 
             chatButton.onclick = () => {
-                window.location.href = `./messages.html?trade_id=${chat.trade_id}`; // Передача trade_id
+                window.location.href = `/chats/?trade_id=${chat.trade_id}`; // Передача trade_id
             };
 
             if (chat.is_my_item) {
