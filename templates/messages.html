@@ -3,125 +3,47 @@
 {% block head %}
     <link rel="stylesheet" href="/static/fetures/Messages/styles.css">
     <link rel="stylesheet" href="/static/fetures/Messages/message.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+
 {% endblock %}
 
-
-
 {% block content %}
-                <section class="messages_container">
-                    <div class="section_head">
-                        <h1> <img src="/static/icon/user.svg" width="20px" alt="user_icon">Николай</h1>
-                        <button id="delete_chat_btn" onclick="window.delete_chat.showModal()"><img
-                                src="/static/icon/delete.svg" alt="delete_icon"></button>
-                    </div>
-                    <div class="trade_item_box">
-                        <button class="item" id="selected_item" type="button" onclick="window.choose_thing.showModal()">Выбрать
-                            вещь</button>
-                        <img src="/static/icon/logo/logo.svg" alt="">
-                        <div class="item">Ручка</div>
-                    </div>
-                    <div class="message_container">
-                        <div class="notification_container" id="statusMessage">
-                            <span>Ожидание ответа от пользователя</span>
-                        </div>
-                        <div class="notification_container_choices active">
-                            <span>Вы согласы на обмен ?</span>
-                            <div class="choice_btn_box">
-                                <button class="agree_btn" type="button" id="agree_trade">Да</button>
-                                <button class="refusal_btn" type="button" id="refusal_btn">Нет</button>
-                            </div>
-                        </div>
-                        <!-- <div class="message">
-                            <img src="https://avatars.mds.yandex.net/i?id=561543dbc4c04e48e3dfecb21134d955_l-4299853-images-thumbs&n=13" alt="avatar">
-                            <div class="message_text">
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                            </div>
-                        </div>
-                        <div class="message">
-                            <div class="message_text">
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                            </div>
-                            <img src="https://avatars.mds.yandex.net/i?id=561543dbc4c04e48e3dfecb21134d955_l-4299853-images-thumbs&n=13" alt="avatar">
-                        </div>
-                        <div class="message">
-                            <img src="https://avatars.mds.yandex.net/i?id=561543dbc4c04e48e3dfecb21134d955_l-4299853-images-thumbs&n=13" alt="avatar">
-
-                            <div class="message_text">
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                            </div>
-                        </div> -->
-                    </div>
-                    <div class="input_message">
-                        <input id="chat_input" type="text" placeholder="">
-                        <img src="/static/icon/message/icon.svg" alt="message_icon">
-                    </div>
+    <section class="messages_container">
+        <div class="section_head">
+            <h1 id="companion_name"></h1><img id="companion_image" src="" width="20px" alt="user_icon">
+            <button id="delete_chat_btn" onclick="window.delete_chat.showModal()"><img src="/static/icon/delete.svg" alt="delete_icon"></button>
+        </div>
+        <div class="trade_item_box" id="trade_item_box">
+            <button class="item" id="selected_item" type="button" onclick="window.choose_thing.showModal()">Выбрать вещь</button>
+        </div>
+        <div class="message_container" id="message_container">
+            <div class="notification_container" id="statusMessage"></div>
+            <div class="notification_container_choices" id="choices_container">
+                <span>Вы согласны на обмен?</span>
+                <div class="choice_btn_box">
+                    <button class="agree_btn" type="button" id="agree_trade">Да</button>
+                    <button class="refusal_btn" type="button" id="refusal_btn">Нет</button>
+                </div>
+            </div>
+        </div>
+        <div class="input_message" id="input_message">
+            <input id="chat_input" type="text" placeholder="">
+            <img src="/static/icon/message/icon.svg" alt="message_icon">
+        </div>
                     <dialog id="choose_thing">
                         <h2>Выбрать вещь</h2>
                         <button class="close_modal" type="button">
-                            <img src="/static/icon/persobnalCabinet/close.svg" alt="close_form">
+                            <img src="../static/icon/persobnalCabinet/close.svg" alt="close_form">
                         </button>
-                        <div class="thing_container" id="thing_list"></div>
-                    </dialog>
-                    <dialog id="delete_chat">
-                        <h2>Удалить этот чат</h2>
-                        <button class="close_modal" type="button">
-                            <img src="/static/icon/persobnalCabinet/close.svg" alt="close_form">
-                        </button>
-                        <div class="text_container">
-                            Вы действительно хотите удалить этот чат ?
+                        <div class="swiper-container">
+                            <div class="swiper-wrapper" id="thing_list"></div>
+                            <div class="swiper-pagination"></div>
                         </div>
-                        <button type="button" id="cancellation_chat" class="add_thing_button">Отменить</button>
-                        <button type="button" id="remove_chat" class="add_thing_button">Удалить</button>
                     </dialog>
-                </section>
+    </section>
+
 <script>
-
-        const items = ['Ручка', 'Блокнот', 'Книга', 'Кружка', 'Игрушка'];
-        const thingList = document.getElementById('thing_list');
-        const selectedItemButton = document.getElementById('selected_item');
-        let selectedItem = localStorage.getItem('selectedItem');
-
-        function displayItems() {
-            items.forEach(item => {
-                const button = document.createElement('button');
-                button.className = 'personal_thing';
-                button.textContent = item;
-                button.addEventListener('click', () => {
-
-                    document.querySelectorAll('.personal_thing').forEach(btn => {
-                        btn.classList.remove('selected');
-                    });
-
-                    button.classList.add('selected');
-                    selectedItemButton.textContent = item;
-                    localStorage.setItem('selectedItem', item);
-                    document.getElementById('choose_thing').close();
-                });
-                if (item === selectedItem) {
-                    button.classList.add('selected');
-                    selectedItemButton.textContent = item;
-                }
-                thingList.appendChild(button);
-            });
-        }
-
-
-
-        document.querySelectorAll('.close_modal').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const dialog = event.target.closest('dialog');
-                if (dialog) {
-                    dialog.close();
-                }
-            });
-        });
-
-        displayItems();
-
     const testJson = [
         {
             status: 'waiting for owner'
@@ -130,11 +52,92 @@
             status: 'choose item'
         }
     ];
+    const items = [
+        {id:1, name: 'Ручка', image: '../static/img/1.jpg' },
+        {id:2, name: 'Блокнот', image: '../static/img/fork.png' },
+        {id:3, name: 'Книга', image: '../static/img/pencils.png' },
+        {id:4, name: 'Кружка', image: '../static/img/3.jpg' },
+        {id:5, name: 'Игрушка', image: '../static/img/book.png' }
+    ];
+    const thingList = document.getElementById('thing_list');
+    const selectedItemButton = document.getElementById('selected_item');
+    let selectedItem = localStorage.getItem('selectedItem');
+
+    if (testJson[1].status === 'choose_item') {
+        (async function getUserThings() {
+            await fetch(`/items/users/${user_id}`, {
+                method: 'GET',
+            })
+                .then((data) => displayItems(data)) // Смотри, тут еще может быть такое момент res.data в зависимости от того как приходит ответ.
+                .catch((error) => { throw new Error('Ошибка сети: ' + error) });
+        })()
+    }
+
+    function displayItems(data) {
+        thingList.innerHTML = '';
+        // Тут надо data вместо заглушки
+        items.forEach(item => {
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.innerHTML = `
+            <span class="item__selected" style="display: none;">Выбрана</span>
+            <div key="${item.id}" class="img_container" style="background-image: url(${item.image});">
+                <img src="${item.image}" alt="${item.name}" />
+            </div>
+            <div class="item-name">${item.name}</div>
+             <button class="select-button" data-id="${item.id}">Выбрать</button>
+        `;
+
+            const selectButton = slide.querySelector('.select-button');
+            selectButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+
+                document.querySelectorAll('.item__selected').forEach(span => {
+                    span.classList.remove('selected');
+                    span.style.display = 'none';
+                });
+
+                const selectedSpan = slide.querySelector('.item__selected');
+                selectedSpan.classList.add('selected');
+                selectedSpan.style.display = 'block';
+
+                selectedItemButton.textContent = item.name;
+                localStorage.setItem('selectedItem', item.name);
+                document.getElementById('choose_thing').close();
+            });
+
+            thingList.appendChild(slide);
+        });
+    }
+
+    const swiper = new Swiper('.swiper-container', {
+        slidesPerView: 1,
+        spaceBetween: 10,
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+    });
+
+    document.querySelectorAll('.close_modal').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const dialog = event.target.closest('dialog');
+            if (dialog) {
+                dialog.close();
+            }
+        });
+    });
+
+    displayItems();
+
 
     function updateStatusMessage() {
         const statusMessageElement = document.getElementById('statusMessage');
         const currentStatus = testJson[1].status;
-
 
         switch (currentStatus) {
             case 'waiting for owner':
@@ -167,14 +170,13 @@
     document.getElementById('remove_chat').addEventListener('click', () => {
         // Саша, тут запрос на удаление чата :)
     });
-
-    document.getElementById('chat_input').disabled = true;
+    //189
 
     document.getElementById('agree_trade').addEventListener('click', () => {
         document.querySelector('.input_message').classList.add('agree');
         document.querySelector('.notification_container_choices').classList.remove('active');
 
-         // дальше тут работа с websocket , мб выдавать собеседнику сообщение типа "собеседник согласился на обмен"
+        // дальше тут работа с websocket , мб выдавать собеседнику сообщение типа "собеседник согласился на обмен"
     });
 
     document.getElementById('refusal_btn').addEventListener('click', () => {
@@ -182,7 +184,7 @@
         // Тута логика при отказе , мб , дальнейшее удаление чата , тогда надо удаление вынести в функцию :)
     });
 
-    function deleteChat(){
+    function deleteChat() {
         // запрос
     }
 
@@ -200,4 +202,3 @@
     updateStatusMessage();
 </script>
 {% endblock %}
-

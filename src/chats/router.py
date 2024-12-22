@@ -4,9 +4,8 @@ from typing import List, Dict, Optional
 
 import vk_id
 from fastapi import APIRouter, Request, Depends
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.responses import StreamingResponse
 from sse_starlette.sse import EventSourceResponse
 from src.chats.services import get_active_trades
 from src.items.models import Item
@@ -14,7 +13,6 @@ from src.jinja import templates
 from src.postgres.api import get_entity_by_params
 from src.postgres.session import async_session
 from src.vk.constants import JWTTokens
-from src.vk.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/chats"
@@ -119,8 +117,6 @@ async def chats_sse(request: Request, session: AsyncSession = Depends(async_sess
         finally:
             if isinstance(user, vk_id.Error) or user is None:
                 active_sse_connections.remove(request)
-
-        active_sse_connections.add(request)
         try:
             while True:
                user_items = await get_entity_by_params(
@@ -137,35 +133,12 @@ async def chats_sse(request: Request, session: AsyncSession = Depends(async_sess
                   user_items_ids=user_items,
                   current_user_id=int(user.user_id)
                )
+
                yield f"{json.dumps({"type": "initial_chats", "chats": chats_list})}\n\n"
+
                await asyncio.sleep(5)
+
         except asyncio.CancelledError:
             print("Client disconnected from SSE")
-        finally:
-            if request in active_sse_connections:
-                active_sse_connections.remove(request)
 
     return EventSourceResponse(stream())
-#
-# @router.get(
-#     path="/1")
-# async def test_endpoint(
-#         vk_user: vk_id.User = Depends(get_current_user),
-#         session: AsyncSession = Depends(async_session)):
-#     user_items = await get_entity_by_params(
-#         session=session,
-#         model=Item.id,
-#         conditions=[
-#             Item.owner_id == int(vk_user.user_id)
-#         ],
-#         many=True
-#     )
-#
-#     chats_list = await get_active_trades(
-#         session=session,
-#         user_items_ids=user_items,
-#         current_user_id=int(vk_user.user_id)
-#     )
-#
-#     return chats_list
-#
