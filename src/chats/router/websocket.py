@@ -1,49 +1,150 @@
 import asyncio
 import json
-from fastapi import WebSocket
+
+import vk_id
+from fastapi import WebSocket, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketDisconnect
 from .router import router
+from ...items.models import Item, ItemTrade
+from ...postgres.api import get_entity_by_params
+from ...postgres.session import async_session
+from ...vk.constants import JWTTokens
+from sqlalchemy import or_, and_
+from src.s3_client import PUBLIC_URL as S3_PUBLIC_URL
 
-items_db = [
-    {"id": 1, "name": "Ручка", "image": "../static/img/1.jpg"},
-    {"id": 2, "name": "Блокнот", "image": "../static/img/fork.png"},
-    {"id": 3, "name": "Книга", "image": "../static/img/pencils.png"},
-    {"id": 4, "name": "Кружка", "image": "../static/img/3.jpg"},
-    {"id": 5, "name": "Игрушка", "image": "../static/img/book.png"},
-]
+
 
 status_db = "waiting for owner"
 
 
-@router.websocket("/ws/")
-async def websocket_endpoint(websocket: WebSocket):
+@router.websocket("/ws/{trade_id}")
+async def websocket_endpoint(websocket: WebSocket,
+                             trade_id: int,
+                             session: AsyncSession = Depends(async_session)):
     await websocket.accept()
-    global status_db
+
+    user = None
+
+    try:
+        user = await vk_id.get_user_public_info(
+            access_token=websocket.cookies.get(str(JWTTokens.ACCESS.value))
+        )
+    except Exception as _:
+        await websocket.close()
+    finally:
+        if isinstance(user, vk_id.Error) or user is None:
+            await websocket.close()
+            return
+
+        user_items_ids = await get_entity_by_params(
+            session=session,
+            model=Item.id,
+            conditions=[
+                Item.owner_id == int(user.user_id)
+            ],
+            many=True
+        )
+
+        trade = await get_entity_by_params(
+            session=session,
+            model=ItemTrade,
+            conditions=[
+                and_(
+                    or_(
+                        ItemTrade.item_requested_id.in_(user_items_ids),
+                        ItemTrade.offered_by_user_id == int(user.user_id),
+                ),
+                        ItemTrade.id == trade_id
+                )
+            ],
+            load_relationships=[
+                ItemTrade.item_requested,
+                ItemTrade.interested_by_owner_item,
+                ItemTrade.interested_user
+            ],
+        )
+
+        if trade is None:
+            await websocket.close()
+            return
+
+    current_trade_status = None
+
+    initial_payload = {"type": "initial_data"}
+
+    if trade.interested_item_id is None and trade.item_requested.owner_id == int(user.user_id):
+        initial_payload["status"] = "choose item"
+
+        items = await get_entity_by_params(
+            model=Item,
+            session=session,
+            conditions=[
+                Item.owner_id == trade.offered_by_user_id
+            ],
+            many=True
+        )
+
+        content = []
+        for item in items:
+            content.append({
+                "id": item.id,
+                "name": item.name,
+                "image": f"{S3_PUBLIC_URL}/{item.s3_url_path}"
+            })
+        initial_payload["items"] = content
+
+    elif trade.interested_item_id is None and trade.item_requested.owner_id != int(user.user_id):
+        initial_payload["status"] = "waiting"
+    elif trade.interested_item_id is not None and trade.is_matched is False and trade.item_requested.owner_id == int(user.user_id):
+        initial_payload["status"] = "waiting"
+    elif trade.interested_item_id is not None and trade.is_matched is True and trade.item_requested.owner_id != int(user.user_id):
+
+        initial_payload["status"] = "final answer"
+
+        second_item = await get_entity_by_params(
+            model=Item,
+            session=session,
+            conditions=[Item.id == trade.interested_item_id]
+        )
+
+        initial_payload["items"] = list({
+            "id": second_item.id,
+            "name": second_item.name,
+            "image": f"{S3_PUBLIC_URL}/{second_item.s3_url_path}"
+        })
+    else:
+        initial_payload["status"] = "active"
+
+    await websocket.send_json(initial_payload)
+
+
     try:
         while True:
-            data = await websocket.receive_json()
-            if data.get("type") == "get_all_data":
-                await websocket.send_json({
-                    "type": "initial_data",
-                    "status": status_db,
-                    "items": items_db
-                })
-
-                await asyncio.sleep(4)
-
-                await websocket.send_json({
-                    "type": "status",
-                    "status": status_db,
-                    "items": items_db
-                })
-            elif data.get("type") == "update_status":
-                status_db = data.get("status")
-                await websocket.send_json({
-                    "type": "status",
-                    "status": status_db
-                })
-            else:
-                await websocket.send_json({"type": "error", "message": "Unknown request type"})
+            await asyncio.sleep(1000)
+            # data = await websocket.receive_json()
+            # if data.get("type") == "get_all_data":
+            #     await websocket.send_json({
+            #         "type": "initial_data",
+            #         "status": status_db,
+            #         "items": items_db
+            #     })
+            #
+            #     await asyncio.sleep(4)
+            #
+            #     await websocket.send_json({
+            #         "type": "status",
+            #         "status": status_db,
+            #         "items": items_db
+            #     })
+            # elif data.get("type") == "update_status":
+            #     status_db = data.get("status")
+            #     await websocket.send_json({
+            #         "type": "status",
+            #         "status": status_db
+            #     })
+            # else:
+            #     await websocket.send_json({"type": "error", "message": "Unknown request type"})
 
     except WebSocketDisconnect:
         print("Client disconnected")

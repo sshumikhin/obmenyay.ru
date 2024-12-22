@@ -11,15 +11,15 @@
 {% block content %}
                 <section class="messages_container">
                     <div class="section_head">
-                        <h1> <img src="../static/icon/user.svg" width="20px" alt="user_icon">Николай</h1>
+                        <h1> <img src="/static/icon/user.svg" width="20px" alt="user_icon">Николай</h1>
                         <button id="delete_chat_btn" onclick="window.delete_chat.showModal()"><img
-                                src="../static/icon/delete.svg" alt="delete_icon"></button>
+                                src="/static/icon/delete.svg" alt="delete_icon"></button>
                     </div>
                     <div class="trade_item_box">
                         <button class="item" id="selected_item" type="button"
                             onclick="window.choose_thing.showModal()">Выбрать
                             вещь</button>
-                        <img src="../static/icon/logo/logo.svg" alt="">
+                        <img src="/static/icon/logo/logo.svg" alt="">
                         <div class="item">Ручка</div>
                     </div>
                     <div class="message_container">
@@ -29,8 +29,8 @@
                         <div class="notification_container_choices">
                             <span>Пользователь готов обсудить если вы предложите данный товар:</span>
                             <div key="1" class="img_container_notify"
-                                style="background-image:url('../static/img/1.jpg')">
-                                <img src="../static/img/1.jpg" alt="" />
+                                style="background-image:url('/static/img/1.jpg')">
+                                <img src="/static/img/1.jpg" alt="" />
                             </div>
                             <div class="choice_btn_box">
                                 <button class="agree_btn" type="button" id="agree_trade">Да</button>
@@ -63,13 +63,13 @@
                     </div>
                     <div class="input_message">
                         <input id="chat_input" type="text" placeholder="">
-                        <img src="../static/icon/message/icon.svg" alt="message_icon">
+                        <img src="/static/icon/message/icon.svg" alt="message_icon">
                     </div>
                     <!-- ====================== -->
                     <dialog id="choose_thing">
                         <h2>Выбрать вещь</h2>
                         <button class="close_modal" type="button">
-                            <img src="../static/icon/persobnalCabinet/close.svg" alt="close_form">
+                            <img src="/static/icon/persobnalCabinet/close.svg" alt="close_form">
                         </button>
                         <div class="swiper-container">
                             <div class="swiper-wrapper" id="thing_list"></div>
@@ -95,18 +95,14 @@ const thingList = document.getElementById('thing_list');
 const selectedItemButton = document.getElementById('selected_item');
 let selectedItem = localStorage.getItem('selectedItem');
 
-const ws = new WebSocket('wss://obmenyay-ru.ru/chats/ws/');
+const ws = new WebSocket('wss://obmenyay-ru.ru/chats/ws/{{ trade_id }}');
 
-let currentStatus = null; // Переменная для хранения текущего статуса
-let currentItems = []; // Переменная для хранения текущих элементов
-
-ws.onopen = function () {
-    console.log('WebSocket connection established');
-    ws.send(JSON.stringify({ type: 'get_all_data' })); // Запрос всех данных
-};
+let currentStatus = null;
+let currentItems = [];
 
 ws.onmessage = function (event) {
     const data = JSON.parse(event.data);
+    console.log(data);
     switch (data.type) {
         case 'status':
             currentStatus = data.status;
@@ -116,7 +112,7 @@ ws.onmessage = function (event) {
             currentItems = data.items;
             displayItems(currentItems);
             break;
-        case 'initial_data': // Получение всех данных сразу
+        case 'initial_data':
             currentStatus = data.status;
             currentItems = data.items;
             updateStatusMessage(currentStatus);
@@ -166,7 +162,7 @@ function displayItems(items) {
         const statusMessageElement = document.getElementById('statusMessage');
 
         switch (status) {
-            case 'waiting for owner':
+            case 'waiting':
                 statusMessageElement.textContent = 'Ожидание ответа от пользователя';
                 document.getElementById('selected_item').disabled = true;
                 break;
