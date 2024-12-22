@@ -102,45 +102,10 @@ async def append_item_endpoint(
         s3_path="",
     )
 
-    # contents = await file.read()
-    # img = Image.open(io.BytesIO(contents))
-    # format = img.format
-    # target_ratio = 9 / 16
-    # try:
-    #     img = ImageOps.exif_transpose(img)
-    # except AttributeError:
-    #     pass
-    #
-    # width, height = img.size
-    #
-    # if width / height > target_ratio:
-    #     new_height = int(width / target_ratio)
-    #     left = 0
-    #     top = (height - new_height) // 2
-    #     right = width
-    #     bottom = top + new_height
-    # else:
-    #     left = 0
-    #     top = 0
-    #     right = width
-    #     bottom = height
-    #
-    # cropped_img = img.crop((left, top, right, bottom))
-    # output = io.BytesIO()
-    #
-    # cropped_img.save(
-    #     output,
-    #     format=format,
-    #     quality=100
-    # )
-    #
-    # output.seek(0)
-
     item.s3_url_path = f"/users/{current_user.user_id}/items/{item.id}"
 
     try:
         await s3_client.upload_file(
-            # file_stream=output.getvalue(),
             file_stream=file.file,
             file_name=item.s3_url_path)
 
@@ -398,16 +363,12 @@ async def like_item_endpoint(
     # TODO : отправлять пользователю оповещение о том, что его товар лайкнули в вк
 
 
-
-
-
 @router.get(
     path="/for-trade"
 )
 async def get_items_for_trade_endpoint(
         request: Request,
-        vk_user: VKUser = Depends(get_current_user),
-        session: AsyncSession = Depends(async_session),
+        _: VKUser = Depends(get_current_user),
 ):
 
     return templates.TemplateResponse(

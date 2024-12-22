@@ -51,10 +51,8 @@ async def get_active_trades(
 
         trade_info["last_message"] = {
             "text": "Текст последнего сообщения",
-            "is_seen": False
         }
 
         content.append(trade_info)
-
 
     return content

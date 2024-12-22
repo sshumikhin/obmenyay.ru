@@ -240,6 +240,12 @@ function displayItems(items) {
         }
     });
 
-    updateStatusMessage();
+    document.addEventListener('DOMContentLoaded', () => {
+     const burger = document.querySelector('.burger-menu');
+            if (burger) {
+                burger.classList.add('active');
+            }
+        updateStatusMessage();
+        });
 </script>
 {% endblock %}

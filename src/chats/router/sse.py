@@ -20,7 +20,11 @@ async def get_chats_for_user(session: AsyncSession, user_id: int):
     # chats = result.scalars().all()
     # return chats
     return [
-        {"trade_id": 1, "is_my_item": True, "user": {"image_url": "url", "fullname": "name"}, "item": {"id": 1, "name": "item"}, "last_message": {"is_seen": True, "text": "text"}},
+        {
+            "trade_id": 1,
+            "is_my_item": True,
+            "user":
+                {"image_url": "url", "fullname": "name"}, "item": {"id": 1, "name": "item"}, "last_message": {"is_seen": True, "text": "text"}},
         {"trade_id": 2, "is_my_item": False, "user": {"image_url": "url", "fullname": "name2"}, "item": {"id": 2, "name": "item2"}, "last_message": {"is_seen": False, "text": "text2"}}
     ]
 
@@ -58,7 +62,7 @@ async def chats_sse(request: Request, session: AsyncSession = Depends(async_sess
                   current_user_id=int(user.user_id)
                )
 
-               yield f"{json.dumps({"type": "initial_chats", "chats": chats_list})}\n\n"
+               yield f"{json.dumps({"type": "actual_chats", "chats": chats_list})}\n\n"
 
                await asyncio.sleep(5)
 

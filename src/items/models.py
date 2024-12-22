@@ -45,6 +45,7 @@ class ItemTrade(Base):
     item_requested_id = Column(BigInteger, ForeignKey(Item.id), nullable=False)
     offered_by_user_id = Column(BigInteger, ForeignKey(User.id), nullable=False)
     created_at_utc = Column(DateTime, default=utcnow_without_tzinfo)
+    interested_item_id = Column(BigInteger, ForeignKey(Item.id), nullable=True)
     is_matched = Column(Boolean, default=False)
 
     item_requested = relationship(argument="Item")
