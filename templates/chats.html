@@ -39,7 +39,7 @@ eventSource.onmessage = (event) => {
     if (data.type === "chats_update" || data.type === "initial_chats") {
         displayChats(data.chats);
     } else if (data.type === "new_message") {
-        updateChat(data.chat_id, data.message); // Эта функция должна быть определена где-то еще
+        updateChat(data.chat_id, data.message);
     }
 };
 
