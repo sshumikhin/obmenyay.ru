@@ -14,9 +14,14 @@
             <h1 id="companion_name"></h1><img id="companion_image" src="" width="20px" alt="user_icon">
             <button id="delete_chat_btn" onclick="window.delete_chat.showModal()"><img src="/static/icon/delete.svg" alt="delete_icon"></button>
         </div>
-        <div class="trade_item_box" id="trade_item_box">
-            <button class="item" id="selected_item" type="button" onclick="window.choose_thing.showModal()">Выбрать вещь</button>
-        </div>
+                    <div class="trade_item_box">
+                        <button class="item" id="selected_item" type="button"
+                            onclick="window.choose_thing.showModal()">Выбрать
+                            вещь</button>
+                        <img src="/static/icon/logo/logo.svg" alt="">
+                        <div class="item">Ручка</div>
+                    </div>
+
         <div class="message_container" id="message_container">
             <div class="notification_container" id="statusMessage"></div>
             <div class="notification_container_choices" id="choices_container">
@@ -34,7 +39,7 @@
                     <dialog id="choose_thing">
                         <h2>Выбрать вещь</h2>
                         <button class="close_modal" type="button">
-                            <img src="../static/icon/persobnalCabinet/close.svg" alt="close_form">
+                            <img src="/static/icon/persobnalCabinet/close.svg" alt="close_form">
                         </button>
                         <div class="swiper-container">
                             <div class="swiper-wrapper" id="thing_list"></div>
@@ -53,11 +58,11 @@
         }
     ];
     const items = [
-        {id:1, name: 'Ручка', image: '../static/img/1.jpg' },
-        {id:2, name: 'Блокнот', image: '../static/img/fork.png' },
-        {id:3, name: 'Книга', image: '../static/img/pencils.png' },
-        {id:4, name: 'Кружка', image: '../static/img/3.jpg' },
-        {id:5, name: 'Игрушка', image: '../static/img/book.png' }
+        {id:1, name: 'Ручка', image: '/static/img/1.jpg' },
+        {id:2, name: 'Блокнот', image: '/static/img/fork.png' },
+        {id:3, name: 'Книга', image: '/static/img/pencils.png' },
+        {id:4, name: 'Кружка', image: '/static/img/3.jpg' },
+        {id:5, name: 'Игрушка', image: '/static/img/book.png' }
     ];
     const thingList = document.getElementById('thing_list');
     const selectedItemButton = document.getElementById('selected_item');
