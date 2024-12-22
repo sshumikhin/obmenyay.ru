@@ -26,6 +26,15 @@
 }
 
 
+.add_thing_button {
+    background-color: rgba(0, 0, 0, 0.628);
+    padding: 10px;
+    border-radius: 7px;
+    color: white;
+    min-width: 150px;
+}
+
+
 .chats_container {
     display: flex;
     flex-direction: column;
