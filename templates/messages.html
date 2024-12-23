@@ -22,7 +22,7 @@
                         <img src="/static/icon/logo/logo.svg" alt="">
                         <div class="item">Ручка</div>
                     </div>
-                    <div class="message_container">
+                    <div class="message_container" id="message_container">
                         <div class="notification_container active" id="statusMessage">
                             <span>Ожидание ответа от пользователя</span>
                         </div>
@@ -37,29 +37,6 @@
                                 <button class="refusal_btn" type="button" id="refusal_btn">Нет</button>
                             </div>
                         </div>
-                        <!-- <div class="message">
-                            <img src="https://avatars.mds.yandex.net/i?id=561543dbc4c04e48e3dfecb21134d955_l-4299853-images-thumbs&n=13" alt="avatar">
-                            <div class="message_text">
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                            </div>
-                        </div>
-                        <div class="message">
-
-                            <div class="message_text">
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                            </div>
-                            <img src="https://avatars.mds.yandex.net/i?id=561543dbc4c04e48e3dfecb21134d955_l-4299853-images-thumbs&n=13" alt="avatar">
-                        </div>
-                        <div class="message">
-                            <img src="https://avatars.mds.yandex.net/i?id=561543dbc4c04e48e3dfecb21134d955_l-4299853-images-thumbs&n=13" alt="avatar">
-                            <div class="message_text">
-                                <p>Да, давай. Согласен встретиться на перемене</p>
-                            </div>
-                        </div> -->
                     </div>
                     <div class="input_message">
                         <input id="chat_input" type="text" placeholder="">
@@ -102,24 +79,57 @@ let currentItems = [];
 
 ws.onmessage = function (event) {
     const data = JSON.parse(event.data);
-    console.log(data);
     switch (data.type) {
-        case 'initial_data':
-            currentStatus = data.status;
-            currentItems = data.items;
-            updateStatusMessage(currentStatus, currentItems);
-            displayItems(currentItems);
-            break;
-        case 'status':
-            currentStatus = data.status;
-            updateStatusMessage(currentStatus, "Товар");
-            break;
-        case 'items':
-            currentItems = data.items;
-            displayItems(currentItems);
-            break;
+            case 'active':
+                currentStatus = data.status;
+                currentItems = data.items;
+                updateStatusMessage(currentStatus, currentItems);
+                displayItems(currentItems);
+                break;
+            case 'message':
+                if (data.status === 'active') {
+                    displayMessage(data.text, `${data.is_my ? 'outgoing' : 'incoming'}`);
+                }
+                break;
+
+            case "initial_data":
+                currentStatus = data.status;
+                currentItems = data.items;
+                updateStatusMessage(currentStatus, currentItems);
+                displayItems(currentItems);
+                break;
+        }
+    };
+
+
+    function displayMessage(message, type, user_avatar_url) {
+        const messageContainer = document.getElementById('message_container');
+        const messageElement = document.createElement('div');
+        if (type === 'incoming'){
+            messageElement.className = `message ${type}`;
+            messageElement.innerHTML = `
+                <div class="message incoming">
+                    <img src="${user_avatar_url}" alt="user_avatar">
+                    <div class="message_text">
+                        <p>${message}</p>
+                    </div>
+                </div>
+            `;
+        }else if (type === 'outgoing'){
+            messageElement.className = `message ${type}`;
+            messageElement.innerHTML = `
+                <div class="message outgoing">
+                    <div class="message_text">
+                        <p>${message}</p>
+                    </div>
+                    <img src="${user_avatar_url}" alt="user_avatar">
+                </div>
+            `;
+        }
+        messageContainer.appendChild(messageElement);
     }
-};
+
+
 
 function displayItems(items) {
   thingList.innerHTML = '';
@@ -262,26 +272,21 @@ document.getElementById('agree_trade').addEventListener('click', async () => {
 });
 
 
-cument.getElementById('refusal_btn').addEventListener('click', () => {
+document.getElementById('refusal_btn').addEventListener('click', () => {
     document.querySelector('.notification_container_choices').classList.remove('active');
-    deleteChat(); // Вызываем функцию удаления чата
+    deleteChat();
 });
 
 async function deleteChat() {
     const tradeId = '{{ trade_id }}';
 
-    if (!tradeId) {
-        console.error("Не удалось получить ID сделки.");
-        return; // Прерываем выполнение функции
-    }
-
     try {
         const response = await fetch(`/trades/${tradeId}`, {
             method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json' // Закрывающая фигурная скобка добавлена здесь
+                'Content-Type': 'application/json'
             }
-        }); // Закрывающая скобка для fetch
+        });
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -298,7 +303,7 @@ async function deleteChat() {
         console.error('Ошибка при выполнении запроса:', error);
         alert("Произошла ошибка при удалении. Пожалуйста, попробуйте позже.");
     }
-} // Закрывающая фигурная скобка для функции
+}
 
 
     document.getElementById('chat_input').addEventListener('keypress', (event) => {
@@ -319,5 +324,6 @@ async function deleteChat() {
             }
         updateStatusMessage();
         });
+
 </script>
 {% endblock %}

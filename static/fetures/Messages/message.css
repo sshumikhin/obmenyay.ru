@@ -64,9 +64,18 @@
 .message{
     display: flex;
     align-items: start;
-    gap: 1rem;
+    gap: .5rem;
     padding: 10px;
 }
+
+.message.incoming{
+    justify-content: end;
+}
+
+.message.outgoing{
+    justify-content: start;
+}
+
 
 
 .message img{
@@ -85,6 +94,7 @@
     padding: 5px;
     border-radius: 10px;
 }
+
 /*  */
 .input_message{
     display: none;
