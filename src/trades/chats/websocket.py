@@ -6,7 +6,8 @@ from fastapi import WebSocket, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketDisconnect
 from .router import router
-from ...items.models import Item, ItemTrade
+from ..models import ItemTrade
+from ...items.models import Item
 from ...postgres.api import get_entity_by_params
 from ...postgres.session import async_session
 from ...vk.constants import JWTTokens
@@ -22,6 +23,10 @@ status_db = "waiting for owner"
 async def websocket_endpoint(websocket: WebSocket,
                              trade_id: int,
                              session: AsyncSession = Depends(async_session)):
+
+    # TODO: проверка на то, является ли сейчас trade активным, потому что его могли удалить
+
+
     await websocket.accept()
 
     user = None
@@ -37,6 +42,7 @@ async def websocket_endpoint(websocket: WebSocket,
             await websocket.close()
             return
 
+    async def get_user_items(session: AsyncSession):
         user_items_ids = await get_entity_by_params(
             session=session,
             model=Item.id,
@@ -69,59 +75,58 @@ async def websocket_endpoint(websocket: WebSocket,
             await websocket.close()
             return
 
-    current_trade_status = None
+        initial_payload = {"type": "initial_data"}
 
-    initial_payload = {"type": "initial_data"}
+        if trade.interested_item_id is None and trade.item_requested.owner_id == int(user.user_id):
+            initial_payload["status"] = "choose item"
 
-    if trade.interested_item_id is None and trade.item_requested.owner_id == int(user.user_id):
-        initial_payload["status"] = "choose item"
+            items = await get_entity_by_params(
+                model=Item,
+                session=session,
+                conditions=[
+                    Item.owner_id == trade.offered_by_user_id
+                ],
+                many=True
+            )
 
-        items = await get_entity_by_params(
-            model=Item,
-            session=session,
-            conditions=[
-                Item.owner_id == trade.offered_by_user_id
-            ],
-            many=True
-        )
+            content = []
+            for item in items:
+                content.append({
+                    "id": item.id,
+                    "name": item.name,
+                    "image": f"{S3_PUBLIC_URL}/{item.s3_url_path}"
+                })
+            initial_payload["items"] = content
 
-        content = []
-        for item in items:
-            content.append({
-                "id": item.id,
-                "name": item.name,
-                "image": f"{S3_PUBLIC_URL}/{item.s3_url_path}"
-            })
-        initial_payload["items"] = content
+        elif trade.interested_item_id is None and trade.item_requested.owner_id != int(user.user_id):
+            initial_payload["status"] = "waiting"
+        elif trade.interested_item_id is not None and trade.is_matched is False and trade.item_requested.owner_id == int(user.user_id):
+            initial_payload["status"] = "waiting"
+        elif trade.interested_item_id is not None and trade.is_matched is False and trade.item_requested.owner_id != int(user.user_id):
 
-    elif trade.interested_item_id is None and trade.item_requested.owner_id != int(user.user_id):
-        initial_payload["status"] = "waiting"
-    elif trade.interested_item_id is not None and trade.is_matched is False and trade.item_requested.owner_id == int(user.user_id):
-        initial_payload["status"] = "waiting"
-    elif trade.interested_item_id is not None and trade.is_matched is True and trade.item_requested.owner_id != int(user.user_id):
+            initial_payload["status"] = "final answer"
 
-        initial_payload["status"] = "final answer"
+            second_item = await get_entity_by_params(
+                model=Item,
+                session=session,
+                conditions=[Item.id == trade.interested_item_id]
+            )
 
-        second_item = await get_entity_by_params(
-            model=Item,
-            session=session,
-            conditions=[Item.id == trade.interested_item_id]
-        )
+            initial_payload["items"] = [{
+                "id": second_item.id,
+                "name": second_item.name,
+                "image": f"{S3_PUBLIC_URL}/{second_item.s3_url_path}"
+            }]
+        else:
+            initial_payload["status"] = "active"
 
-        initial_payload["items"] = list({
-            "id": second_item.id,
-            "name": second_item.name,
-            "image": f"{S3_PUBLIC_URL}/{second_item.s3_url_path}"
-        })
-    else:
-        initial_payload["status"] = "active"
-
-    await websocket.send_json(initial_payload)
+        await websocket.send_json(initial_payload)
 
 
     try:
         while True:
-            await asyncio.sleep(1000)
+            await get_user_items(session)
+            await asyncio.sleep(5)
             # data = await websocket.receive_json()
             # if data.get("type") == "get_all_data":
             #     await websocket.send_json({

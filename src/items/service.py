@@ -1,7 +1,8 @@
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from src.items.models import Item, UserSeenItem, ItemTrade
+from src.items.models import Item, UserSeenItem
+from src.trades.models import ItemTrade
 
 
 async def create_item(

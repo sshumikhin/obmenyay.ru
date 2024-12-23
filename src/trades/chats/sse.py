@@ -5,12 +5,11 @@ from .router import router
 from fastapi import Request, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
-from src.chats.services import get_active_trades
 from src.items.models import Item
 from src.postgres.api import get_entity_by_params
 from src.postgres.session import async_session
 from src.vk.constants import JWTTokens
-
+from ..services import get_active_trades
 
 active_sse_connections = set()
 

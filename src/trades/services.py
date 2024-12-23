@@ -2,9 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, case
 from sqlalchemy.orm import selectinload
 
-from src.chats.models import Message
-from src.items.models import ItemTrade, Item
+from src.items.models import Item
 from src.postgres.api import get_entity_by_params
+from src.trades.models import ItemTrade
 
 
 async def get_active_trades(

@@ -37,22 +37,3 @@ class UserSeenItem(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "item_id", name="user_seen_items_unique"),
     )
-
-
-class ItemTrade(Base):
-    __tablename__ = "item_trades"
-
-    id = Column(BigInteger, primary_key=True, unique=True)
-    item_requested_id = Column(BigInteger, ForeignKey(Item.id), nullable=False)
-    offered_by_user_id = Column(BigInteger, ForeignKey(User.id), nullable=False)
-    created_at_utc = Column(DateTime, default=utcnow_without_tzinfo)
-    interested_item_id = Column(BigInteger, ForeignKey(Item.id), nullable=True)
-    is_matched = Column(Boolean, default=False)
-
-    item_requested = relationship("Item", foreign_keys=[item_requested_id])
-    interested_by_owner_item = relationship("Item", foreign_keys=[interested_item_id])
-    interested_user = relationship("User", foreign_keys=[offered_by_user_id])
-
-    __table_args__ = (
-        UniqueConstraint("offered_by_user_id", "item_requested_id", name="user_trade_items_unique"),
-    )

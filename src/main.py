@@ -6,8 +6,9 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src.vk.constants import JWTTokens
 from src.vk.router import router as vk_router
-from src.items.router import router as items_router
-from src.chats.router import router as chats_router
+from src.items.router import items as items_router
+from src.trades.router import trades as trades_router
+from src.trades.chats.router import router as chats_router
 # First party
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
@@ -39,6 +40,7 @@ vk_id_app_configure(
 app.include_router(vk_router)
 app.include_router(items_router)
 app.include_router(chats_router)
+app.include_router(trades_router)
 
 
 @app.exception_handler(UserIsNotAuthenticated)

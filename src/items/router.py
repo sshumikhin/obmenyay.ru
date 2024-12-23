@@ -12,15 +12,14 @@ from src.postgres.session import async_session
 from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_MB, PUBLIC_URL as S3_PUBLIC_URL
 from .dependencies import validate_name, validate_description, validate_file
 from .schemas import Delete_item
-from PIL import Image, ImageOps
-import io
 
-router = APIRouter(
-    prefix="/items"
+items = APIRouter(
+    prefix="/items",
+    tags=["Items API"]
 )
 
 
-@router.post(
+@items.post(
     summary="Добавить новый предмет",
     path="/",
     status_code=status.HTTP_200_OK,
@@ -126,7 +125,7 @@ async def append_item_endpoint(
             "description": item.description}
 
 
-@router.delete(
+@items.delete(
     summary="Удалить товар",
     path="/",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -234,7 +233,7 @@ async def delete_item_endpoint(
         )
 
 
-@router.get(
+@items.get(
     summary="Получить новую партию товаров для обмена",
     path="/"
 )
@@ -242,6 +241,10 @@ async def get_items_endpoint(
         vk_user: VKUser = Depends(get_current_user),
         session: AsyncSession = Depends(async_session)
 ):
+
+    # TODO: проверять, чтобы имелись свои товары
+    # TODO: не показывать товары, которые уже умеются в item_trades
+
     watched_items_ids = await get_entity_by_params(
         session=session,
         model=UserSeenItem.item_id,
@@ -278,7 +281,7 @@ async def get_items_endpoint(
     return content
 
 
-@router.get(
+@items.get(
     path="/{item_id}/skip",
     status_code=status.HTTP_204_NO_CONTENT
 )
@@ -294,7 +297,7 @@ async def skip_item_endpoint(
     )
 
 
-@router.get(path="/{item_id}/like")
+@items.get(path="/{item_id}/like")
 async def like_item_endpoint(
         item_id: int,
         vk_user: VKUser = Depends(get_current_user),
@@ -363,7 +366,7 @@ async def like_item_endpoint(
     # TODO : отправлять пользователю оповещение о том, что его товар лайкнули в вк
 
 
-@router.get(
+@items.get(
     path="/for-trade"
 )
 async def get_items_for_trade_endpoint(
@@ -378,7 +381,7 @@ async def get_items_for_trade_endpoint(
     )
 
 
-@router.get(
+@items.get(
     path="/my",
     include_in_schema=False
 )
@@ -407,3 +410,9 @@ async def get_my_items_endpoint(
             } for item in items]
         }
     )
+
+
+
+
+
+
