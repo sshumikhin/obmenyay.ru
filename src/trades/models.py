@@ -38,6 +38,8 @@ class Message(Base):
     __tablename__ = "messages"
     id = Column(BigInteger, primary_key=True)
     trade_id = Column(BigInteger, ForeignKey("item_trades.id"))
-    user_id = Column(BigInteger)
+    user_id = Column(BigInteger, ForeignKey(User.id))
     text = Column(Text)
     is_seen = Column(Boolean, default=False)
+
+    sender = relationship("User")

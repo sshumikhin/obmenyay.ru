@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 
 from src.items.models import Item
 from src.postgres.api import get_entity_by_params
-from src.trades.models import ItemTrade
+from src.trades.models import ItemTrade, Message
 
 
 async def get_active_trades(
@@ -56,3 +56,19 @@ async def get_active_trades(
         content.append(trade_info)
 
     return content
+
+
+async def create_message(
+        session: AsyncSession,
+        trade_id: int,
+        user_id: int,
+        text: str
+):
+    session.add(
+        Message(
+            trade_id=trade_id,
+            user_id=user_id,
+            text=text
+        )
+    )
+    await session.commit()

@@ -77,19 +77,20 @@ const ws = new WebSocket('wss://obmenyay-ru.ru/chats/ws/{{ trade_id }}');
 let currentStatus = null;
 let currentItems = [];
 
-ws.onmessage = function (event) {
-    const data = JSON.parse(event.data);
-    switch (data.type) {
+    ws.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        console.log(data);
+        switch (data.type) {
             case 'active':
-                currentStatus = data.status;
+                currentStatus = data.type;
                 currentItems = data.items;
                 updateStatusMessage(currentStatus, currentItems);
-                displayItems(currentItems);
                 break;
             case 'message':
-                if (data.status === 'active') {
-                    displayMessage(data.text, `${data.is_my ? 'outgoing' : 'incoming'}`);
-                }
+                document.querySelector('.input_message').classList.add('agree');
+                document.querySelector('.notification_container').classList.remove('active');
+                document.getElementById('selected_item').disabled = true;
+                displayMessage(data.text, `${data.is_my ? 'outgoing' : 'incoming'}`, data.sender_image_url)
                 break;
 
             case "initial_data":
@@ -105,24 +106,24 @@ ws.onmessage = function (event) {
     function displayMessage(message, type, user_avatar_url) {
         const messageContainer = document.getElementById('message_container');
         const messageElement = document.createElement('div');
-        if (type === 'incoming'){
+        if (type === 'incoming') {
             messageElement.className = `message ${type}`;
             messageElement.innerHTML = `
                 <div class="message incoming">
-                    <img src="${user_avatar_url}" alt="user_avatar">
                     <div class="message_text">
                         <p>${message}</p>
                     </div>
+                    <img src="${user_avatar_url}" alt="user_avatar">
                 </div>
             `;
-        }else if (type === 'outgoing'){
+        } else if (type === 'outgoing') {
             messageElement.className = `message ${type}`;
             messageElement.innerHTML = `
                 <div class="message outgoing">
+                    <img src="${user_avatar_url}" alt="user_avatar">
                     <div class="message_text">
                         <p>${message}</p>
                     </div>
-                    <img src="${user_avatar_url}" alt="user_avatar">
                 </div>
             `;
         }
@@ -131,63 +132,58 @@ ws.onmessage = function (event) {
 
 
 
-function displayItems(items) {
-  thingList.innerHTML = '';
+    function displayItems(items) {
+        thingList.innerHTML = '';
 
-  items.forEach(item => {
-    const slide = document.createElement('div');
-    slide.className = 'swiper-slide';
-    slide.innerHTML = `
-      <span class="item__selected" style="display: none;">Выбрана</span>
-      <div key="${item.id}" class="img_container" style="background-image: url(${item.image});">
-        <img src="${item.image}" alt="${item.name}" />
-      </div>
-      <div class="item-name">${item.name}</div>
-      <button class="select-button" data-id="${item.id}">Выбрать</button>
-    `;
 
-    const selectButton = slide.querySelector('.select-button');
-    selectButton.addEventListener('click', async (event) => {
-      event.stopPropagation();
+        items.forEach(item => {
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.innerHTML = `
+                                <span class="item__selected" style="display: none;">Выбрана</span>
+                                <div key="${item.id}" class="img_container" style="background-image: url(${item.image});">
+                                    <img src="${item.image}" alt="${item.name}" />
+                                </div>
+                                <div class="item-name">${item.name}</div>
+                                <button class="select-button" data-id="${item.id}">Выбрать</button>
+            `;
 
-      // Очищаем предыдущий выбор
-      document.querySelectorAll('.item__selected').forEach(span => {
-        span.classList.remove('selected');
-        span.style.display = 'none';
-      });
+            const selectButton = slide.querySelector('.select-button');
+            selectButton.addEventListener('click', async (event) => {
+                event.stopPropagation();
 
-      const selectedSpan = slide.querySelector('.item__selected');
-      selectedSpan.classList.add('selected');
-      selectedSpan.style.display = 'block';
 
-      selectedItemButton.textContent = item.name;
-      localStorage.setItem('selectedItem', item.name);
+                // Очищаем предыдущий выбор
+                document.querySelectorAll('.item__selected').forEach(span => {
+                    span.classList.remove('selected');
+                    span.style.display = 'none';
+                });
 
-      try {
-        const response = await fetch('https://obmenyay-ru.ru/trades/{{ trade_id }}/choose-item', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ item_id: Number(item.id) })
+                const selectedSpan = slide.querySelector('.item__selected');
+                selectedSpan.classList.add('selected');
+                selectedSpan.style.display = 'block';
+
+                selectedItemButton.textContent = item.name;
+                localStorage.setItem('selectedItem', item.name);
+
+                (async function getUserThings() {
+                    const trade_id = {{ trade_id }}
+                    await fetch(`https://obmenyay-ru.ru/trades/${trade_id}/choose-item`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ item_id: Number(item.id) })
+                    })
+                        .then(() => document.getElementById('choose_thing').close())
+                        .catch((error) => { throw new Error('Ошибка запроса: ' + error) });
+                })()
+            });
+            thingList.appendChild(slide);
         });
+    }
 
-        if (!response.ok) {
-          throw new Error(`Ошибка запроса к /foo: ${response.status}`);
-        }
 
-        const data = await response.json();
-        console.log('Успешный запрос к /foo:', data);
-      } catch (error) {
-        console.error('Ошибка при запросе к /foo:', error);
-      } finally {
-        document.getElementById('choose_thing').close();
-      }
-    });
-
-    thingList.appendChild(slide);
-  });
-}
 
 
     function updateStatusMessage(status, items) {
@@ -216,7 +212,7 @@ function displayItems(items) {
                 document.querySelector('.input_message').classList.add('agree');
                 document.querySelector('.notification_container').classList.remove('active');
                 document.getElementById('selected_item').disabled = true;
-                selectedItemButton.textContent = item_name;
+                // selectedItemButton.textContent = item_name;
                 break;
         }
     }
@@ -306,23 +302,36 @@ async function deleteChat() {
 }
 
 
-    document.getElementById('chat_input').addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            const message = event.target.value.trim();
-            if (message) {
-                console.log(message);
-                event.target.value = '';
-                // дальше тут работа с websocket
-            }
+document.getElementById('chat_input').addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        const message = event.target.value.trim();
+        if (message) {
+            displayMessage(message, 'outgoing');
+            event.target.value = '';
+
+            (async function getUserThings() {
+                await fetch(`https://obmenyay-ru.ru/trades/{{ trade_id }}/send_message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: message,
+                    }),
+                })
+                    .then(() => {})
+                    .catch((error) => { throw new Error('Error sending message: ' + error) });
+            })()
+
         }
-    });
+    }
+});
 
     document.addEventListener('DOMContentLoaded', () => {
      const burger = document.querySelector('.burger-menu');
             if (burger) {
                 burger.classList.add('active');
             }
-        updateStatusMessage();
         });
 
 </script>

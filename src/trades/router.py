@@ -7,9 +7,10 @@ from src.postgres.api import get_entity_by_params
 from src.vk.dependencies import get_current_user
 from src.postgres.session import async_session
 from .models import ItemTrade
-from .schemas import DesiredItem
+from .schemas import DesiredItem, Message
 from sqlalchemy import and_, or_
 
+from .services import create_message
 
 trades = APIRouter(
     prefix="/trades",
@@ -161,3 +162,34 @@ async def delete_trade_endpoint(
             content={"message": "Трейд не был найден"}
         )
 
+
+@trades.post("/{trade_id}/send_message")
+async def send_message_endpoint(
+        trade_id: int,
+        text: Message,
+        vk_user: VKUser = Depends(get_current_user),
+        session: AsyncSession = Depends(async_session)
+    ):
+
+    trade = await get_entity_by_params(
+        session=session,
+        model=ItemTrade,
+        conditions=[
+            ItemTrade.id == trade_id
+        ],
+        load_relationships=[ItemTrade.item_requested]
+    )
+
+    # if trade is None or trade.offered_by_user_id != int(vk_user.user_id) or trade.item_requested.owner_id != int(vk_user.user_id):
+    #     return JSONResponse(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         content={"message": "Трейд не был найден"}
+    #     )
+
+    await create_message(
+        session=session,
+        trade_id=trade_id,
+        user_id=int(vk_user.user_id),
+        text=text.text)
+
+    return {"message": "ok"}

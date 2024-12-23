@@ -194,7 +194,7 @@ async def delete_item_endpoint(
         session: AsyncSession = Depends(async_session),
         s3_client: S3Client = Depends(selectel),
 ):
-
+    # TODO: писать о том, что все чаты, связанные с предметом будут удалены
     item_id = item.item_id
 
     item = await get_entity_by_params(
