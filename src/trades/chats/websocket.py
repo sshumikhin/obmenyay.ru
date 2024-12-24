@@ -57,10 +57,7 @@ async def websocket_endpoint(websocket: WebSocket,
 
                 try:
                     state = await connection.check_current_state()
-
-                    if state != last_system_message:
-                        await websocket.send_json(state)
-                    last_system_message = state
+                    await websocket.send_json(state)
                 except ChatIsActive:
                     await acting_on_active_trade(connection, websocket)
 
