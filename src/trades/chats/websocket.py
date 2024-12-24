@@ -17,12 +17,15 @@ async def acting_on_active_trade(
         "type": connection.type,
     })
 
-    async for message in await connection.get_all_messages():
+    current_messages = await connection.get_all_messages()
+
+    for message in current_messages:
         await websocket.send_json(message)
 
     while True:
         await asyncio.sleep(3)
-        async for message in connection.get_new_messages():
+        new_messages = await connection.get_new_messages()
+        for message in new_messages:
             await websocket.send_json(message)
 
 

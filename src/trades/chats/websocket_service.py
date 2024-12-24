@@ -129,13 +129,16 @@ class ChatConnection:
 
         self.loaded_messages_ids_in_chat = [message.id for message in messages]
 
+        content = []
+
         for message in messages:
-            yield {
+            content.append({
                 "type": "message",
                 "text": message.text,
                 "sender_image_url": message.sender.image_url,
                 "is_my": message.user_id == int(self.user.user_id)
-            }
+            })
+        return content
 
     async def get_new_messages(self):
         messages = await get_entity_by_params(
@@ -149,17 +152,21 @@ class ChatConnection:
             many=True
         )
 
+        content = []
+
         if messages is not None:
 
             self.loaded_messages_ids_in_chat.extend([message.id for message in messages])
 
             for message in messages:
-                yield {
+                content.append({
                     "type": "message",
                     "text": message.text,
                     "sender_image_url": message.sender.image_url,
                     "is_my": message.user_id == int(self.user.user_id)
-                }
+                })
+
+        return content
 
     async def check_current_state(self):
         """ Только для неактивных чатов """
