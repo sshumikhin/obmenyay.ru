@@ -63,5 +63,6 @@ async def websocket_endpoint(websocket: WebSocket,
 
                 await asyncio.sleep(5)
 
-    except Exception:
+    except Exception as e:
+        print(e)
         await websocket.close()
