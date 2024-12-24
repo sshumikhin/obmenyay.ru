@@ -30,17 +30,23 @@ async def get_chats(
     if trade is None:
         return templates.TemplateResponse("base.html", {"request": request})
 
-    if trade.item_requested.owner_id == int(vk_user.user_id):
-        fullname = trade.interested_user.fullname
-    elif trade.offered_by_user_id != int(vk_user.user_id):
+    if trade.offered_by_user_id != int(vk_user.user_id):
+        companion = await get_entity_by_params(
+            model=User,
+            session=session,
+            conditions=[User.id == trade.offered_by_user_id]
+        )
+
+        fullname = companion.fullname
+    else:
         owner = await get_entity_by_params(
             model=User,
             session=session,
             conditions=[User.id == trade.item_requested.owner_id]
         )
         fullname = owner.fullname
-    else:
-        return templates.TemplateResponse("base.html", {"request": request})
+    # else:
+    #     return templates.TemplateResponse("base.html", {"request": request})
 
     first_item = trade.interested_by_owner_item
 

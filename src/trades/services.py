@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, case
+from sqlalchemy import select, or_, case, desc
 from sqlalchemy.orm import selectinload
 
 from src.items.models import Item
@@ -49,8 +49,10 @@ async def get_active_trades(
             "name": trade.item_requested.name
         }
 
+        text = await get_last_message_in_chat(session, trade.id)
+
         trade_info["last_message"] = {
-            "text": "Текст последнего сообщения",
+            "text": text,
         }
 
         content.append(trade_info)
@@ -72,3 +74,15 @@ async def create_message(
         )
     )
     await session.commit()
+
+
+async def get_last_message_in_chat(session: AsyncSession,
+                                   chat_id: int):
+    query = select(Message).where(Message.trade_id == chat_id).order_by(desc(Message.created_at)).limit(1)
+
+    result = (await session.execute(query)).scalar_one_or_none()
+
+    if result is None:
+        return ""
+
+    return result.text

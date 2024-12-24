@@ -42,5 +42,6 @@ class Message(Base):
     user_id = Column(BigInteger, ForeignKey(User.id))
     text = Column(Text)
     is_seen = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=utcnow_without_tzinfo)
 
     sender = relationship("User")
