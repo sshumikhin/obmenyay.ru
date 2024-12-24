@@ -1,10 +1,9 @@
-from typing import List, Dict, Optional
-from fastapi import APIRouter, Request, Depends
+from typing import Optional
+from fastapi import Request, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.jinja import templates
 from .router import router
 from ..models import ItemTrade
-from ...items.models import Item
 from ...postgres.api import get_entity_by_params
 from ...postgres.session import async_session
 from ...vk.dependencies import get_current_user
@@ -53,6 +52,6 @@ async def get_chats(
     return templates.TemplateResponse("messages.html",
                                       {"request": request,
                                        "trade_id": trade_id,
-                                       "fullname": fullname,
+                                       "name": fullname.split()[0],
                                        "first_item_name": first_item_name,
                                        "second_item_name": trade.item_requested.name})
