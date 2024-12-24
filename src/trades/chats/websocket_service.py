@@ -171,7 +171,7 @@ class ChatConnection:
         if current_type != self.type:
             raise ChatIsActive
 
-        payload = {}
+        payload = {"type": self.type}
 
         if self.trade.interested_item_id is None and self.trade.item_requested.owner_id == int(self.user.user_id):
             payload["status"] = "choose item"
