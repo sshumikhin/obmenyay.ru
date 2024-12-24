@@ -13,6 +13,10 @@ async def acting_on_active_trade(
         connection: ChatConnection,
         websocket: WebSocket
 ):
+    await websocket.send_json({
+        "type": connection.type,
+    })
+
     async for message in await connection.get_all_messages():
         await websocket.send_json(message)
 
