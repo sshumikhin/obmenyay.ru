@@ -11,16 +11,15 @@
 {% block content %}
                 <section class="messages_container">
                     <div class="section_head">
-                        <h1> <img src="/static/icon/user.svg" width="20px" alt="user_icon">Николай</h1>
+                        <h1> <img src="/static/icon/user.svg" width="20px" alt="user_icon">{{ fullname}}</h1>
                         <button id="delete_chat_btn" onclick="window.delete_chat.showModal()"><img
                                 src="/static/icon/delete.svg" alt="delete_icon"></button>
                     </div>
                     <div class="trade_item_box">
                         <button class="item" id="selected_item" type="button"
-                            onclick="window.choose_thing.showModal()">Выбрать
-                            вещь</button>
+                            onclick="window.choose_thing.showModal()">{{ first_item_name }}</button>
                         <img src="/static/icon/logo/logo.svg" alt="">
-                        <div class="item">Ручка</div>
+                        <div class="item">{{ second_item_name }}</div>
                     </div>
                     <div class="message_container" id="message_container">
                         <div class="notification_container active" id="statusMessage">
