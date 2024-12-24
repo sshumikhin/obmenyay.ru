@@ -52,6 +52,11 @@ async def websocket_endpoint(websocket: WebSocket,
 
             try:
 
+                await connection.init_trade(
+                    access_token=websocket.cookies.get(str(JWTTokens.ACCESS.value)),
+                    trade_id=trade_id
+                )
+
                 await websocket.send_json(
                     data=await connection.check_current_state()
                 )
@@ -62,7 +67,6 @@ async def websocket_endpoint(websocket: WebSocket,
             await asyncio.sleep(5)
 
         await acting_on_active_trade(connection, websocket)
-
 
     except Exception as e:
         print(e)
