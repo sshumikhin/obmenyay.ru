@@ -49,8 +49,8 @@ async def websocket_endpoint(websocket: WebSocket,
             await acting_on_active_trade(connection, websocket)
 
         else:
+            last_system_message = None
             while True:
-                last_system_message = None
 
                 try:
                     state = await connection.check_current_state()
