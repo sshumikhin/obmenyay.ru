@@ -48,19 +48,20 @@ async def websocket_endpoint(websocket: WebSocket,
             trade_id=trade_id
         )
 
-        if connection.type == "active":
-            await acting_on_active_trade(connection, websocket)
+        while connection.type != "active":
 
-        else:
-            last_system_message = None
-            while True:
-                await asyncio.sleep(5)
-                try:
-                    state = await connection.check_current_state()
-                    print(state)
-                    await websocket.send_json(state)
-                except ChatIsActive:
-                    await acting_on_active_trade(connection, websocket)
+            try:
+
+                await websocket.send_json(
+                    data=await connection.check_current_state()
+                )
+
+            except ChatIsActive:
+                await acting_on_active_trade(connection, websocket)
+
+            await asyncio.sleep(5)
+
+        await acting_on_active_trade(connection, websocket)
 
 
     except Exception as e:
