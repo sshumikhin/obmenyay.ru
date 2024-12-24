@@ -43,9 +43,11 @@
                         </div>
                     </div>
                 </section>
-            <div id="notification" class="notification" style="display: none;"></div>
 
     <script type="module">
+
+import { showNotification } from '/static/fetures/Notification/notification.js';
+
 let personal_things = {{ personal_things | tojson | safe }};
 
 
@@ -110,100 +112,63 @@ const convertToJpg = async (file) => {
             });
         };
 
+const addNewThing = async () => {
+    const form = document.getElementById('add_thing_form');
+    const thing_name = document.getElementById('name').value;
+    const thing_description = document.getElementById('thing_description').value;
+    const imageFile = document.getElementById('file_input').files[0];
 
-const showNotification = (message,type = 'error') => {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
+    try {
+        const jpgBlob = await convertToJpg(imageFile);
 
-            if (type === 'success') {
-                notification.classList.add('success');
-            } else {
-                notification.classList.remove('success');
-            }
+        const formData = new FormData();
+        formData.append('name', thing_name);
+        formData.append('description', thing_description);
+        formData.append('file', jpgBlob, `${thing_name}.jpg`);
 
-            notification.style.display = 'block';
-            notification.style.opacity = '1';
+        const response = await fetch("https://obmenyay-ru.ru/items/", {
+            method: 'POST',
+            body: formData
+        });
 
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 500);
-            }, 4000);
-        };
+        if (!response.ok) {
+            const json = await response.json();
+            showNotification(json.message || 'Произошла ошибка', 'error');
+            throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
+        }
 
-        const addNewThing = async () => {
-            const form = document.getElementById('add_thing_form');
-            const thing_name = document.getElementById('name').value;
-            const thing_description = document.getElementById('thing_description').value;
-            const imageFile = document.getElementById('file_input').files[0];
+        window.myDialog.close();
+        personal_things.push({
+            name: `${thing_name}`,
+            description: `${thing_description}`,
+            file: `${thing_name}.jpg`,
+        });
+        renderThings();
+        showNotification('Товар успешно добавлен!', 'success');
 
-            try {
+    } catch (error) {
+        showNotification(json.message);
+    }
 
-                const jpgBlob = await convertToJpg(imageFile);
-
-                const formData = new FormData();
-                formData.append('name', thing_name);
-                formData.append('description', thing_description);
-                formData.append('file', jpgBlob, `${thing_name}.jpg`);
-
-                const response = await fetch("https://obmenyay-ru.ru/items/", {
-                    method: 'POST',
-                    body: formData
-                }).then(()=>{
-                    window.myDialog.close();
-                    personal_things.push({
-                        name:`${thing_name}`,
-                        dedescription:`${thing_description}`,
-                        file:`${thing_name},jpg`,
-                    });
-                    renderThings();
-                    showNotification('Товар успешно добавлен!', 'success');
-                }).catch(()=>{
-                    throw new Error('Ошибка при добавлении товара');
-                });
+    form.reset();
+    window.location.href = 'https://obmenyay-ru.ru/items/my'
+};
 
 
+    const deleteItem = async (id) => {
+        await fetch("https://obmenyay-ru.ru/items", {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ item_id: id })
+        }).then(() => {
+            personal_things = personal_things.filter(thing => thing.id !== id);
+            renderThings();
+            return true;
+        }).catch((error) => showNotification(`Ошибка: ${error}`));
+    };
 
-                window.myDialog.close();
-                form.reset();
-
-
-            } catch (error) {
-                console.error('Произошла ошибка:', error);
-                showNotification(`Произошла ошибка: ${error.message}`);
-            }
-        };
-
-
-
-const deleteItem = async (id) => {
-            try {
-                const response = await fetch("https://obmenyay-ru.ru/items", {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ item_id: id })
-                });
-
-                if (!response.ok) {
-                    const errorMessage = await response.text();
-                    throw new Error(`Ошибка при удалении товара: ${errorMessage}`);
-                    return false;
-                } else {
-                    personal_things = personal_things.filter(thing => thing.id !== id);
-                    renderThings();
-                    return true;
-                }
-
-
-            } catch (error) {
-                console.error('Произошла ошибка:', error);
-                alert(`Произошла ошибка: ${error.message}`);
-                return false;
-            }
-        };
 
 const renderThings = () => {
             const thingList = document.getElementById('thing_list');

@@ -9,7 +9,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from src.postgres.models import Base
-from src.postgres.utils import utcnow_without_tzinfo
 from src.vk.models import User
 
 

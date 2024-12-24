@@ -26,7 +26,9 @@
     <button type="button" id="remove_chat" class="add_thing_button">Удалить</button>
 </dialog>
 
-<script>
+<script type="module">
+import { showNotification } from '/static/fetures/Notification/notification.js';
+
 const chatsContainer = document.getElementById('chatsContainer');
 const deleteDialog = document.getElementById('delete_chat');
 let currentChatToDelete = null;
@@ -156,25 +158,23 @@ document.querySelectorAll('.close_modal, #cancellation_chat').forEach(button => 
     });
 });
 
-document.getElementById('remove_chat').addEventListener('click', () => {
-    if (currentChatToDelete) {
-        fetch(`/chats/delete/${currentChatToDelete}`, { method: 'DELETE' })
-        .then(response => {
-            if (response.ok) {
-                console.log("Чат успешно удален");
-                const chatElement = document.getElementById(currentChatToDelete);
-                if (chatElement) {
-                    chatElement.remove();
-                }
-            } else {
-                console.error("Ошибка удаления чата");
-            }
-        })
-        .catch(error => console.error("Ошибка:", error));
-    }
-    deleteDialog.close();
-    currentChatToDelete = null;
-});
+    document.getElementById('remove_chat').addEventListener('click', () => {
+        if (currentChatToDelete) {
+            (async function chatsDelete() {
+                await fetch(`/trades/${currentChatToDelete}`, { method: 'DELETE' })
+                    .then((res) => {
+                        const chatElement = document.getElementById(currentChatToDelete);
+                        if (chatElement) {
+                            chatElement.remove();
+                        }
+                    })
+                    .catch((error) => showNotification(`Ошибка: ${error}`));
+            })()
+        }
+        deleteDialog.close();
+        currentChatToDelete = null;
+    });
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     const burger = document.querySelector('.burger-menu');

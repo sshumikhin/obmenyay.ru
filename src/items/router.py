@@ -12,6 +12,9 @@ from src.postgres.session import async_session
 from src.s3_client import selectel, S3Client, MAX_FILE_SIZE_MB, PUBLIC_URL as S3_PUBLIC_URL
 from .dependencies import validate_name, validate_description, validate_file
 from .schemas import Delete_item
+from ..trades.models import ItemTrade
+from sqlalchemy import or_
+
 
 items = APIRouter(
     prefix="/items",
@@ -93,6 +96,13 @@ async def append_item_endpoint(
         session: AsyncSession = Depends(async_session),
         s3_client: S3Client = Depends(selectel),
 ):
+
+    if isinstance(name, JSONResponse):
+        return name
+
+    if isinstance(description, JSONResponse):
+        return description
+
     item = await create_item(
         session=session,
         name=name,
@@ -212,7 +222,25 @@ async def delete_item_endpoint(
             status_code=status.HTTP_404_NOT_FOUND,
             content={"message": "Предмет не был найден"}
         )
+
+    trades = await get_entity_by_params(
+        model=ItemTrade,
+        session=session,
+        conditions=[
+            or_(
+                ItemTrade.item_requested_id == item_id,
+                ItemTrade.interested_item_id == item_id)
+        ],
+        many=True
+    )
     try:
+
+        for trade in trades:
+            await delete_entity(
+                session=session,
+                entity=trade
+            )
+
         await s3_client.delete_file(object_name=item.s3_url_path)
 
         await delete_entity(
@@ -226,6 +254,7 @@ async def delete_item_endpoint(
             content={"message": "ОК"}
         )
     except Exception as e:
+        print(e)
         await session.rollback()
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -310,7 +339,7 @@ async def like_item_endpoint(
         many=True
     )
 
-    if user_items is None:
+    if not bool(user_items):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"message": "У вас нет товаров, чтобы начать обмен"}

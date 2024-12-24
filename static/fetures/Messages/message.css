@@ -6,6 +6,50 @@
     gap: .5rem;
 }
 
+.img_container_notify {
+    max-height: 250px;
+    min-height: 250px;
+    border-radius: 20px;
+    margin-top: 10px;
+    width: 100%;
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+.img_container_notify::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: inherit;
+    background-size: cover;
+    background-position: center;
+    filter: blur(15px);
+    z-index: 1;
+}
+
+.img_container_notify img {
+    height: auto;
+    max-height: 250px;
+    border-radius: 20px;
+    object-fit: cover;
+    position: relative;
+    z-index: 2;
+}
+
+
+
+
 .item{
     background-color: black;
     color: white;
