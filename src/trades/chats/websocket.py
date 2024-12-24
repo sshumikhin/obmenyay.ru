@@ -54,7 +54,7 @@ async def websocket_endpoint(websocket: WebSocket,
         else:
             last_system_message = None
             while True:
-
+                await asyncio.sleep(5)
                 try:
                     state = await connection.check_current_state()
                     print(state)
@@ -62,7 +62,6 @@ async def websocket_endpoint(websocket: WebSocket,
                 except ChatIsActive:
                     await acting_on_active_trade(connection, websocket)
 
-                await asyncio.sleep(5)
 
     except Exception as e:
         print(e)
