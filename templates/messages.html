@@ -165,23 +165,27 @@ let currentItems = [];
                 selectedItemButton.textContent = item.name;
                 localStorage.setItem('selectedItem', item.name);
 
-                (async function getUserThings() {
-                    const trade_id = {{ trade_id }}
-                    await fetch(`https://obmenyay-ru.ru/trades/${trade_id}/choose-item`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ item_id: Number(item.id) })
-                    })
-                        .then(() => document.getElementById('choose_thing').close())
-                        .catch((error) => { throw new Error('Ошибка запроса: ' + error) });
-                })()
-            });
-            thingList.appendChild(slide);
-            window.location.href = 'https://obmenyay-ru.ru/chats/?trade_id={{trade_id}}';
+            (async function getUserThings() {
+                const trade_id = {{ trade_id }};
+                await fetch(`https://obmenyay-ru.ru/trades/${trade_id}/choose-item`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ item_id: Number(item.id) })
+                })
+                .then(() => {
+                    document.getElementById('choose_thing').close();
+                    // Редирект на страницу чата
+                    window.location.href = `https://obmenyay-ru.ru/chats/?trade_id=${trade_id}`;
+                })
+                .catch((error) => { throw new Error('Ошибка запроса: ' + error); });
+            })();
         });
-    }
+
+        thingList.appendChild(slide);
+    });
+}
 
 
 
