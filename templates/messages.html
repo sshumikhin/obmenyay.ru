@@ -306,7 +306,6 @@ document.getElementById('chat_input').addEventListener('keypress', (event) => {
     if (event.key === 'Enter') {
         const message = event.target.value.trim();
         if (message) {
-            displayMessage(message, 'outgoing');
             event.target.value = '';
 
             (async function getUserThings() {
