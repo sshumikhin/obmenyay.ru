@@ -72,37 +72,40 @@ import { showNotification } from '/static/fetures/Notification/notification.js';
 const thingList = document.getElementById('thing_list');
 const selectedItemButton = document.getElementById('selected_item');
 let selectedItem = localStorage.getItem('selectedItem');
-
-const ws = new WebSocket('wss://obmenyay-ru.ru/chats/ws/{{ trade_id }}');
-
 let currentStatus = null;
 let currentItems = [];
 
-    ws.onmessage = function (event) {
-        const data = JSON.parse(event.data);
-        console.log(data);
-        switch (data.type) {
-            case 'active':
-                currentStatus = data.type;
-                currentItems = data.items;
-                updateStatusMessage(currentStatus, currentItems);
-                break;
-            case 'message':
-                document.querySelector('.input_message').classList.add('agree');
-                document.querySelector('.notification_container').classList.remove('active');
-                document.getElementById('selected_item').disabled = true;
-                displayMessage(data.text, `${data.is_my ? 'outgoing' : 'incoming'}`, data.sender_image_url)
-                break;
+const eventSource = new EventSource(`https://obmenyay-ru.ru/chats/sse/${tradeId}`); // SSE endpoint
 
-            case "initial_data":
-                currentStatus = data.status;
-                currentItems = data.items;
-                updateStatusMessage(currentStatus, currentItems);
-                displayItems(currentItems);
-                break;
-        }
-    };
+eventSource.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log("Received data:", data);
 
+  switch (data.type) {
+    case 'active':
+      currentStatus = data.type;
+      currentItems = data.items;
+      updateStatusMessage(currentStatus, currentItems);
+      break;
+    case 'message':
+      document.querySelector('.input_message').classList.add('agree');
+      document.querySelector('.notification_container').classList.remove('active');
+      document.getElementById('selected_item').disabled = true;
+      displayMessage(data.text, `${data.is_my ? 'outgoing' : 'incoming'}`, data.sender_image_url);
+      break;
+    case "initial_data":
+      currentStatus = data.status;
+      currentItems = data.items;
+      updateStatusMessage(currentStatus, currentItems);
+      displayItems(currentItems);
+      break;
+  }
+};
+
+eventSource.onerror = (error) => {
+  console.error("SSE error:", error);
+  // Handle error (e.g., retry connection)
+};
 
     function displayMessage(message, type, user_avatar_url) {
         const messageContainer = document.getElementById('message_container');
@@ -186,8 +189,6 @@ let currentItems = [];
             thingList.appendChild(slide);
         });
     }
-
-
 
 
     function updateStatusMessage(status, items) {
