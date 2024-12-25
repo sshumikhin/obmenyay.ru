@@ -100,18 +100,20 @@ from .websocket_service import ChatConnection
 @router.get("/sse/{trade_id}")
 async def personal_chat_sse(request: Request, trade_id: int = None):
     async def stream():
-        connection = ChatConnection()
-        try:
-            await connection.init_trade(
-                access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
-                trade_id=trade_id
-            )
-        except CloseConnectionError:
-            return
+        async with async_session() as session:
+            connection = ChatConnection()
+            try:
+                await connection.init_trade(
+                    access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
+                    trade_id=trade_id,
+                    session=session
+                )
+            except CloseConnectionError:
+                return
 
         try:
             while True:  # Outer loop for connection state changes
-                async with async_session.get_session() as session:  # Correct context manager usage
+                async with async_session() as session:  # Correct context manager usage
                     try:
                         if connection.type == "active":
                             current_messages = await connection.get_all_messages(session=session)

@@ -25,7 +25,8 @@ class ChatConnection:
     async def init_trade(
             self,
             access_token: str,
-            trade_id: int
+            trade_id: int,
+            session: AsyncSession
     ):
         """Инициализирует трейд и пользователя. А также устанавливает тип трейда"""
 
