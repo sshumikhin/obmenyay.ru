@@ -28,19 +28,10 @@ async def chats_sse(request: Request):
         except Exception as e:
             print(f"Error getting user info: {e}") # Логируем ошибку
             active_sse_connections.discard(request) # Безопасное удаление
-
-        finally:
-            if isinstance(user, vk_id.Error) or user is None:
-                active_sse_connections.discard(request)
-
-        if user is None: # Важная проверка, чтобы избежать ошибок ниже
-            yield f"{json.dumps({'type': 'error', 'message': 'User not authenticated'})}\n\n"
             return
-
-
         try:
             while True:
-                async with async_session() as session:
+                async with async_session.async_session() as session:
                     try:
                         user_items = await get_entity_by_params(
                             session=session,
