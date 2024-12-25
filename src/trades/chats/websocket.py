@@ -141,10 +141,10 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
 
                         else:
                             data = await connection.check_current_state(session=session)
-                            yield f"{json.dumps(data)}\n\n"
+                            yield f"data:{json.dumps(data)}\n\n"
                             await asyncio.sleep(5)
 
-                    except ChatIsActive:  # Handle transition to active state
+                    except ChatIsActive:
                         current_messages = await connection.get_all_messages(session=session)
                         for message in current_messages:
                             yield f"{json.dumps(message)}\n\n"
@@ -158,7 +158,7 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
                         print(f"Database error: {e}")
                         await session.rollback()
                         yield f"{json.dumps({'type': 'error', 'message': 'Database error'})}\n\n"
-                    except Exception as e:  # General exception handling
+                    except Exception as e:
                         print(f"Other error during DB operation: {e}")
                         yield f"{json.dumps({'type': 'error', 'message': 'Internal server error'})}\n\n"
         except asyncio.CancelledError:
