@@ -124,6 +124,8 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
             except CloseConnectionError:
                 return
 
+        print(connection.user.first_name)
+
         try:
             while True:
                 async with async_session.async_session() as session:
@@ -141,7 +143,7 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
 
                         else:
                             data = await connection.check_current_state(session=session)
-                            yield f"data:{json.dumps(data)}\n\n"
+                            yield f"{json.dumps(data)}\n\n"
                             await asyncio.sleep(5)
 
                     except ChatIsActive:
