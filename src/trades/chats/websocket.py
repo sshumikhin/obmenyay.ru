@@ -122,51 +122,37 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
                     session=session
                 )
             except CloseConnectionError as e:
-                print(2345432345)
                 return
 
-        print(connection.user.first_name)
-
-        try:
+        if connection.type == "active":
+            async with async_session.async_session() as session:
+                current_messages = await connection.get_all_messages(session=session)
+                for message in current_messages:
+                    yield f"{json.dumps(message)}\n\n"
             while True:
                 async with async_session.async_session() as session:
-                    try:
-                        if connection.type == "active":
-                            current_messages = await connection.get_all_messages(session=session)
-                            for message in current_messages:
-                                yield f"{json.dumps(message)}\n\n"
+                    new_messages = await connection.get_new_messages(session=session)
+                    for message in new_messages:
+                        yield f"{json.dumps(message)}\n\n"
+                    await asyncio.sleep(3)
 
-                            while True:  # Inner loop for new messages
-                                new_messages = await connection.get_new_messages(session=session)
-                                for message in new_messages:
-                                    yield f"{json.dumps(message)}\n\n"
-                                await asyncio.sleep(3)
-
-                        else:
-                            data = await connection.check_current_state(session=session)
-                            yield f"{json.dumps(data)}\n\n"
-                            await asyncio.sleep(5)
-
-                    except ChatIsActive:
+        else:
+            while True:
+                try:
+                    async with async_session.async_session() as session:
+                        data = await connection.check_current_state(session=session)
+                        yield f"{json.dumps(data)}\n\n"
+                        await asyncio.sleep(5)
+                except ChatIsActive:
+                    async with async_session.async_session() as session:
                         current_messages = await connection.get_all_messages(session=session)
                         for message in current_messages:
                             yield f"{json.dumps(message)}\n\n"
-                        while True:
+                    while True:
+                        async with async_session.async_session() as session:
                             new_messages = await connection.get_new_messages(session=session)
                             for message in new_messages:
                                 yield f"{json.dumps(message)}\n\n"
                             await asyncio.sleep(3)
-
-                    except SQLAlchemyError as e:
-                        print(f"Database error: {e}")
-                        await session.rollback()
-                        yield f"{json.dumps({'type': 'error', 'message': 'Database error'})}\n\n"
-                    except Exception as e:
-                        print(f"Other error during DB operation: {e}")
-                        yield f"{json.dumps({'type': 'error', 'message': 'Internal server error'})}\n\n"
-        except asyncio.CancelledError:
-            print("Client disconnected from SSE")
-        except Exception as e:
-            print(f"Unexpected error in SSE stream: {e}")
 
     return EventSourceResponse(stream(), media_type="text/event-stream")
