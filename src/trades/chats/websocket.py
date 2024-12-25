@@ -3,6 +3,7 @@ import json
 from typing import List
 
 from fastapi import WebSocket, Depends, Request
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette import EventSourceResponse
 
@@ -96,67 +97,61 @@ from .websocket_service import ChatConnection
 #         await websocket.close()
 
 
-
 @router.get("/sse/{trade_id}")
-async def personal_chat_sse(
-        request: Request,
-        session: AsyncSession = Depends(async_session),
-        trade_id: int = None):
-
-
+async def personal_chat_sse(request: Request, trade_id: int = None):
     async def stream():
-            connection = ChatConnection(
-                session=session,
+        connection = ChatConnection()
+        try:
+            await connection.init_trade(
+                access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
+                trade_id=trade_id
             )
-            try:
-                await connection.init_trade(
-                    access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
-                    trade_id=trade_id
-                )
-            except CloseConnectionError:
-                return
+        except CloseConnectionError:
+            return
 
+        try:
+            while True:  # Outer loop for connection state changes
+                async with async_session.get_session() as session:  # Correct context manager usage
+                    try:
+                        if connection.type == "active":
+                            current_messages = await connection.get_all_messages(session=session)
+                            for message in current_messages:
+                                yield f"data: {json.dumps(message)}\n\n"
 
-            try:
-                if connection.type == "active":
-                    current_messages = await connection.get_all_messages()
+                            while True:  # Inner loop for new messages
+                                new_messages = await connection.get_new_messages(session=session)
+                                for message in new_messages:
+                                    yield f"data: {json.dumps(message)}\n\n"
+                                await asyncio.sleep(3)
 
-                    for message in current_messages:
-                        yield f"{json.dumps({message})}"
-
-                    while True:
-                        await asyncio.sleep(3)
-                        new_messages = await connection.get_new_messages()
-                        for message in new_messages:
-                            yield f"{json.dumps({message})}"
-
-                else:
-                    while True:
-                        try:
-                            await connection.init_trade(
-                                access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
-                                trade_id=trade_id
-                            )
-
-                            data = await connection.check_current_state()
-                            yield f"{json.dumps(data)}"
+                        else:
+                            data = await connection.check_current_state(session=session)
+                            yield f"data: {json.dumps(data)}\n\n"
                             await asyncio.sleep(5)
 
-                        except ChatIsActive:
-                            current_messages = await connection.get_all_messages()
+                    except ChatIsActive:
+                        current_messages = await connection.get_all_messages(session=session)
+                        for message in current_messages:
+                            yield f"data: {json.dumps(message)}\n\n"
+                        while True:
+                            new_messages = await connection.get_new_messages(session=session)
+                            for message in new_messages:
+                                yield f"data: {json.dumps(message)}\n\n"
+                            await asyncio.sleep(3)
+                    except SQLAlchemyError as e:
+                        print(f"Database error: {e}")
+                        await session.rollback()
+                        yield f"data: {json.dumps({'type': 'error', 'message': 'Database error'})}\n\n"
+                        break
+                    except Exception as e:
+                        print(f"Other error during DB operation: {e}")
+                        yield f"data: {json.dumps({'type': 'error', 'message': 'Internal server error'})}\n\n"
+                        break
 
-                            for message in current_messages:
-                                yield f"{json.dumps({message})}"
 
-                            while True:
-                                await asyncio.sleep(3)
-                                new_messages = await connection.get_new_messages()
-                                for message in new_messages:
-                                    yield f"{json.dumps({message})}"
+        except asyncio.CancelledError:
+            print("Client disconnected from SSE")
+        except Exception as e:
+            print(f"Unexpected error in SSE stream: {e}")
 
-            except asyncio.CancelledError:
-                return
-
-    return EventSourceResponse(stream())
-
-
+    return EventSourceResponse(stream(), media_type="text/event-stream")

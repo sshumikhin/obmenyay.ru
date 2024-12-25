@@ -32,7 +32,10 @@ class Session:
 
     async def __call__(self):
         async with self.async_session() as session:
-            yield session
+            try:
+                yield session
+            finally:
+                await session.close()
 
 
 async_session = Session()

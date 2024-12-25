@@ -16,9 +16,7 @@ class ChatConnection:
 
     def __init__(
             self,
-            session: AsyncSession,
     ):
-        self.session = session
         self.user: None | vk_id.User = None
         self.trade: None | ItemTrade = None
         self.type = None
@@ -43,10 +41,11 @@ class ChatConnection:
 
     async def __get_trade(
             self,
+            session: AsyncSession,
             trade_id: int
     ):
         user_items_ids = await get_entity_by_params(
-            session=self.session,
+            session=session,
             model=Item.id,
             conditions=[
                 Item.owner_id == int(self.user.user_id)
@@ -55,7 +54,7 @@ class ChatConnection:
         )
 
         self.trade = await get_entity_by_params(
-            session=self.session,
+            session=session,
             model=ItemTrade,
             conditions=[
                 and_(
@@ -81,10 +80,10 @@ class ChatConnection:
         else:
             self.type = "active"
 
-    async def _send_companion_items(self):
+    async def _send_companion_items(self, session: AsyncSession):
         items = await get_entity_by_params(
             model=Item,
-            session=self.session,
+            session=session,
             conditions=[
                 Item.owner_id == self.trade.offered_by_user_id
             ],
@@ -101,10 +100,10 @@ class ChatConnection:
 
         return content
 
-    async def _get_item_which_your_companion_wants(self):
+    async def _get_item_which_your_companion_wants(self, session: AsyncSession):
             second_item = await get_entity_by_params(
                 model=Item,
-                session=self.session,
+                session=session,
                 conditions=[Item.id == self.trade.interested_item_id]
             )
 
@@ -116,9 +115,9 @@ class ChatConnection:
 
             return content
 
-    async def get_all_messages(self):
+    async def get_all_messages(self, session: AsyncSession):
         messages = await get_entity_by_params(
-            session=self.session,
+            session=session,
             model=Message,
             conditions=[
                 Message.trade_id == self.trade.id
@@ -140,9 +139,9 @@ class ChatConnection:
             })
         return content
 
-    async def get_new_messages(self):
+    async def get_new_messages(self, session: AsyncSession):
         messages = await get_entity_by_params(
-            session=self.session,
+            session=session,
             model=Message,
             conditions=[
                 Message.trade_id == self.trade.id,
@@ -168,12 +167,12 @@ class ChatConnection:
 
         return content
 
-    async def check_current_state(self):
+    async def check_current_state(self, session: AsyncSession):
         """ Только для неактивных чатов """
 
         current_type = self.type
 
-        await self.__get_trade(self.trade.id)
+        await self.__get_trade(trade_id=self.trade.id,session=session)
 
         if current_type != self.type:
             raise ChatIsActive
@@ -182,7 +181,7 @@ class ChatConnection:
 
         if self.trade.interested_item_id is None and self.trade.item_requested.owner_id == int(self.user.user_id):
             payload["status"] = "choose item"
-            payload["items"] = await self._send_companion_items()
+            payload["items"] = await self._send_companion_items(session=session)
 
         elif self.trade.interested_item_id is None and self.trade.item_requested.owner_id != int(self.user.user_id):
             payload["status"] = "waiting"
@@ -193,6 +192,6 @@ class ChatConnection:
         elif self.trade.interested_item_id is not None and self.trade.is_matched is False and self.trade.item_requested.owner_id != int(self.user.user_id):
 
             payload["status"] = "final answer"
-            payload["items"] = await self._get_item_which_your_companion_wants()
+            payload["items"] = await self._get_item_which_your_companion_wants(session=session)
 
         return payload
