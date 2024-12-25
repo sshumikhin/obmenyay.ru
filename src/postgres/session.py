@@ -37,5 +37,8 @@ class Session:
             finally:
                 await session.close()
 
+    def get_session(self):
+        return self.async_session
+
 
 async_session = Session()
