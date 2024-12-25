@@ -27,7 +27,7 @@ from .websocket_service import ChatConnection
 #         pass
 #
 #
-# async def broadcast_trade_update(trade_id: int, update_data: dict):
+# async def broadcast_trade_update(trade_id: int, update_dict):
 #     if trade_id in websocket_connections:
 #         for websocket in websocket_connections[trade_id]:
 #             await send_update_to_client(websocket, update_data)
@@ -113,59 +113,54 @@ from .websocket_service import ChatConnection
 @router.get("/sse/{trade_id}")
 async def personal_chat_sse(request: Request, trade_id: int = None):
     async def stream():
-        connection = ChatConnection()
-        try:
-            session = await async_session.get_session()
-            await connection.init_trade(
-                access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
-                trade_id=trade_id,
-                session=session
-            )
-        except CloseConnectionError:
-            return
-
+        async with async_session.async_session() as session:
+            connection = ChatConnection()
+            try:
+                await connection.init_trade(
+                    access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
+                    trade_id=trade_id,
+                    session=session
+                )
+            except CloseConnectionError:
+                return
 
         try:
             while True:
-                session = await async_session.get_session()  # Correct session acquisition
+                async with async_session.async_session() as session:
+                    try:
+                        if connection.type == "active":
+                            current_messages = await connection.get_all_messages(session=session)
+                            for message in current_messages:
+                                yield f"{json.dumps(message)}\n\n"
 
-                try:
-                    if connection.type == "active":
+                            while True:  # Inner loop for new messages
+                                new_messages = await connection.get_new_messages(session=session)
+                                for message in new_messages:
+                                    yield f"{json.dumps(message)}\n\n"
+                                await asyncio.sleep(3)
+
+                        else:
+                            data = await connection.check_current_state(session=session)
+                            yield f"{json.dumps(data)}\n\n"
+                            await asyncio.sleep(5)
+
+                    except ChatIsActive:  # Handle transition to active state
                         current_messages = await connection.get_all_messages(session=session)
                         for message in current_messages:
-                            yield f"data: {json.dumps(message)}\n\n"
-
-                        while True:  # Inner loop for new messages
+                            yield f"{json.dumps(message)}\n\n"
+                        while True:
                             new_messages = await connection.get_new_messages(session=session)
                             for message in new_messages:
-                                yield f"data: {json.dumps(message)}\n\n"
+                                yield f"{json.dumps(message)}\n\n"
                             await asyncio.sleep(3)
 
-                    else:
-                        data = await connection.check_current_state(session=session)
-                        yield f"data: {json.dumps(data)}\n\n"
-                        await asyncio.sleep(5)
-
-                except ChatIsActive:  # Handle transition to active state
-                    current_messages = await connection.get_all_messages(session=session)
-                    for message in current_messages:
-                        yield f"data: {json.dumps(message)}\n\n"
-                    while True:
-                        new_messages = await connection.get_new_messages(session=session)
-                        for message in new_messages:
-                            yield f"data: {json.dumps(message)}\n\n"
-                        await asyncio.sleep(3)
-
-                except SQLAlchemyError as e:
-                    print(f"Database error: {e}")
-                    await session.rollback()
-                    yield f"data: {json.dumps({'type': 'error', 'message': 'Database error'})}\n\n"
-                except Exception as e:  # General exception handling
-                    print(f"Other error during DB operation: {e}")
-                    yield f"data: {json.dumps({'type': 'error', 'message': 'Internal server error'})}\n\n"
-                finally:
-                    await session.close()  # Ensure session is closed
-
+                    except SQLAlchemyError as e:
+                        print(f"Database error: {e}")
+                        await session.rollback()
+                        yield f"{json.dumps({'type': 'error', 'message': 'Database error'})}\n\n"
+                    except Exception as e:  # General exception handling
+                        print(f"Other error during DB operation: {e}")
+                        yield f"{json.dumps({'type': 'error', 'message': 'Internal server error'})}\n\n"
         except asyncio.CancelledError:
             print("Client disconnected from SSE")
         except Exception as e:
