@@ -122,7 +122,7 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
                     session=session
                 )
             except CloseConnectionError as e:
-                print(e)
+                print(2345432345)
                 return
 
         print(connection.user.first_name)
