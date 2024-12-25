@@ -17,8 +17,6 @@
 ## Ресурсы
 - **[Макеты](https://www.figma.com/design/NnnpU9mjMZePCP9weVgqN1/%D0%9E%D0%B1%D0%BC%D0%B5%D0%BD%D1%8F%D0%B9.%D1%80%D1%83?node-id=0-1&t=DMndkMecv93ENUTW-1)**
 
-## Архитектура базы данных
-![db_architecture.png](db_architecture.png)
 ## Команда
 
 - **[Ксения Мордвинова](https://t.me/KsuArt0)** - Роль: Дизайнер, спикер проекта 
