@@ -115,15 +115,19 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
     async def stream():
         connection = ChatConnection()
         try:
+            session = await async_session.get_session()
             await connection.init_trade(
                 access_token=request.cookies.get(str(JWTTokens.ACCESS.value)),
-                trade_id=trade_id
+                trade_id=trade_id,
+                session=session
             )
         except CloseConnectionError:
             return
+        finally:
+            await session.close()
 
         try:
-            while True:  # Outer loop for connection state changes
+            while True:
                 session = await async_session.get_session()  # Correct session acquisition
 
                 try:
