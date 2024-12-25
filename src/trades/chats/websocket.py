@@ -141,6 +141,7 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
                 try:
                     async with async_session.async_session() as session:
                         data = await connection.check_current_state(session=session)
+                        print(data)
                         yield f"{json.dumps(data)}\n\n"
                         await asyncio.sleep(5)
                 except ChatIsActive:
