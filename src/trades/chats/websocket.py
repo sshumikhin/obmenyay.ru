@@ -105,7 +105,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from .router import router
 from .websocket_errors import ChatIsActive, CloseConnectionError
-from ...postgres.session import async_session  # Import the instance
+from ...postgres.session import async_session
 from ...vk.constants import JWTTokens
 from .websocket_service import ChatConnection
 
@@ -123,8 +123,8 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
                 )
             except CloseConnectionError as e:
                 return
-
         if connection.type == "active":
+            yield f"{json.dumps({"type": "active"})}"
             async with async_session.async_session() as session:
                 current_messages = await connection.get_all_messages(session=session)
                 for message in current_messages:
@@ -141,10 +141,10 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
                 try:
                     async with async_session.async_session() as session:
                         data = await connection.check_current_state(session=session)
-                        print(data)
                         yield f"{json.dumps(data)}\n\n"
                         await asyncio.sleep(5)
                 except ChatIsActive:
+                    yield f"{json.dumps({"type": "active"})}"
                     async with async_session.async_session() as session:
                         current_messages = await connection.get_all_messages(session=session)
                         for message in current_messages:
