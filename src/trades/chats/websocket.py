@@ -123,8 +123,7 @@ async def personal_chat_sse(request: Request, trade_id: int = None):
             )
         except CloseConnectionError:
             return
-        finally:
-            await session.close()
+
 
         try:
             while True:
