@@ -38,7 +38,7 @@ class ChatConnection:
             if isinstance(self.user, vk_id.Error) or self.user is None:
                 raise CloseConnectionError
 
-        await self.__get_trade(trade_id=trade_id)
+        await self.__get_trade(trade_id=trade_id, session=session)
 
     async def __get_trade(
             self,
