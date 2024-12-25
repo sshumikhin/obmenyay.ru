@@ -75,7 +75,7 @@ let selectedItem = localStorage.getItem('selectedItem');
 let currentStatus = null;
 let currentItems = [];
 
-const eventSource = new EventSource(`https://obmenyay-ru.ru/chats/sse/${tradeId}`); // SSE endpoint
+const eventSource = new EventSource(`https://obmenyay-ru.ru/chats/sse/{{ trade_id }}`); // SSE endpoint
 
 eventSource.onmessage = (event) => {
   const data = JSON.parse(event.data);

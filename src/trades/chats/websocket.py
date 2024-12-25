@@ -138,8 +138,9 @@ async def personal_chat_sse(
                                 trade_id=trade_id
                             )
 
-                            data=await connection.check_current_state()
+                            data = await connection.check_current_state()
                             yield f"{json.dumps(data)}"
+                            await asyncio.sleep(5)
 
                         except ChatIsActive:
                             current_messages = await connection.get_all_messages()
