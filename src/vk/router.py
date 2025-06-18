@@ -53,7 +53,7 @@ async def get_login_page(
 
     payload = {
         "vk_app_id": int(app_config.client_id),
-        "redirect_url": "https://obmenyay-ru.ru/vk/oauth2/token",
+        "redirect_url": "https://obmenyay-ru.ru/survey",
         "code_challenge": pkce.code_challenge,
         "code_verifier": pkce.code_verifier,
         "scope": pkce.scopes,
@@ -179,6 +179,7 @@ async def get_code_state_device_id(
     await session.commit()
 
     return success_response
+
 
 
 # @router.post(path="/oauth2/token/logout")
